@@ -16,7 +16,7 @@ This project is part of Holberton School's Advanced Backend Specialization, show
 |------|------|-------|
 | **Tariq Rashed Almutairi** | Project Lead & Class Diagram | Tariq@hostworksa.com |
 | **Shaden Khaled Almansour** | Package Architecture | shadeenn1424@gmail.com |
-| **Nora Mohammed Alsakran** | Sequence Diagrams | NoraAlsakran1122@gmail.com |
+| **Nora Mohammed Alsakran** | Sequence Diagrams | none.als012@gmail.com |
 
 **Organization:** Integrated Business for Technology and Communications (IB)  
 **Location:** Riyadh, Saudi Arabia 🇸🇦
