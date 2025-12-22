@@ -175,6 +175,6 @@ classDiagram
 
 ---
 
-**Created by:** Norah Mohammed Alskran  
+**Created by:** shaden almansour  
 **Project:** HBnB Evolution - Part 1  
 **Date:** December 2025
