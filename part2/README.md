@@ -83,11 +83,16 @@ The application will be available at `http://localhost:5000`
 
 ## API Documentation
 
-Once the application is running, you can access the interactive API documentation at:
+Once the application is running, you can access the interactive API documentation (Swagger UI) at:
 
 ```
 http://localhost:5000/api/v1/docs
 ```
+
+This interactive documentation allows you to:
+- Explore all available endpoints
+- View request/response schemas
+- Test API calls directly from your browser
 
 ## API Endpoints
 
@@ -133,7 +138,7 @@ The API implements data serialization with extended attributes for related objec
 
 ### Create a User
 ```bash
-curl -X POST http://localhost:5000/api/v1/users \
+curl -X POST http://localhost:5000/api/v1/users/ \
   -H "Content-Type: application/json" \
   -d '{
     "first_name": "Tariq",
@@ -144,7 +149,7 @@ curl -X POST http://localhost:5000/api/v1/users \
 
 ### Create a Place
 ```bash
-curl -X POST http://localhost:5000/api/v1/places \
+curl -X POST http://localhost:5000/api/v1/places/ \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Luxury Villa in Riyadh",
@@ -158,7 +163,7 @@ curl -X POST http://localhost:5000/api/v1/places \
 
 ### Create a Review
 ```bash
-curl -X POST http://localhost:5000/api/v1/reviews \
+curl -X POST http://localhost:5000/api/v1/reviews/ \
   -H "Content-Type: application/json" \
   -d '{
     "place_id": "{place_id}",
