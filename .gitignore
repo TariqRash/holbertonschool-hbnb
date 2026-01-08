@@ -44,3 +44,6 @@ htmlcov/
 
 # Project reference materials (do not commit)
 holpRefrence/
+
+# Local helper scripts not for commit
+TASK_0_PROJECT_SETUP_TARIQ.py
