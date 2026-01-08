@@ -1,7 +1,8 @@
 # HBnB Part 2 - Testing Report
 **Completed by:** Norah Mohammed Alskran  
 **Date:** January 8, 2026  
-**Role:** QA & Testing
+**Role:** QA & Testing  
+**Manual API Testing:** Tariq Almutairi
 
 ---
 
@@ -10,10 +11,12 @@
 This report documents the comprehensive testing performed on the HBnB Part 2 application, covering all Business Logic models and API endpoints. All validation requirements have been implemented and thoroughly tested.
 
 **Test Results:**
-- ✅ **84 Unit Tests** - All Passing
+- ✅ **88 Unit Tests** - All Passing
 - ✅ **19 Facade Integration Tests** - All Passing  
+- ✅ **54 Manual API Tests** - All Passing (see [MANUAL_API_TESTING.md](./MANUAL_API_TESTING.md))
 - ✅ **Business Logic Validation** - Fully Implemented
 - ✅ **Model Relationships** - Working Correctly
+- ✅ **Swagger UI Documentation** - Complete and Tested
 
 ---
 
@@ -343,21 +346,47 @@ python -m unittest tests.test_api_endpoints
 
 ---
 
-## 8. Conclusion
+## 8. Manual API Testing with cURL
+
+Comprehensive black-box testing has been performed on all API endpoints using cURL commands. This includes testing all CRUD operations, validation rules, error handling, and edge cases.
+
+**📄 Complete Manual Testing Documentation:**  
+See [MANUAL_API_TESTING.md](./MANUAL_API_TESTING.md) for detailed test results including:
+
+- ✅ **54 Manual Tests** - 100% Pass Rate
+- ✅ **All User Endpoints** - POST, GET, PUT tested with success/failure cases
+- ✅ **All Amenity Endpoints** - Complete CRUD validation
+- ✅ **All Place Endpoints** - Coordinate validation, relationships, pricing
+- ✅ **All Review Endpoints** - Including DELETE operation (only entity with delete)
+- ✅ **Swagger UI Testing** - Interactive API documentation verified
+- ✅ **Edge Cases** - Boundary values, special characters, validation limits
+- ✅ **Security Verification** - Password never exposed in responses
+- ✅ **Error Handling** - All 400/404 responses properly formatted
+
+**Manual Testing Completed By:** Tariq Almutairi (tariq@hostworksa.com)
+
+---
+
+## 9. Conclusion
 
 The HBnB Part 2 Business Logic layer has been thoroughly tested and validated. All core functionality is working as expected:
 
-✅ **88 tests passing** with 100% pass rate  
+✅ **88 unit tests passing** with 100% pass rate  
+✅ **54 manual API tests passing** with 100% pass rate  
 ✅ **Comprehensive validation** on all models  
 ✅ **Robust error handling** for edge cases  
 ✅ **Proper relationships** between entities  
-✅ **Clean separation** of concerns via Facade pattern
+✅ **Clean separation** of concerns via Facade pattern  
+✅ **Complete API documentation** via Swagger UI  
+✅ **Security requirements** met (passwords not exposed)
 
 The foundation is solid and ready for Part 3 database integration and authentication features.
 
 ---
 
 **Testing Completed By:**  
-Norah Mohammed Alskran  
+- **Unit & Integration Tests:** Norah Mohammed Alskran  
+- **Manual API Testing:** Tariq Almutairi  
+**Date:** January 8, 2026
 QA & Testing Lead  
 January 8, 2026
