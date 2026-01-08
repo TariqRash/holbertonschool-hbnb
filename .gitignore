@@ -41,3 +41,6 @@ htmlcov/
 # Documentation (but keep the final PDF)
 *.pdf
 !part1/technical-documentation.pdf
+
+# Project reference materials (do not commit)
+holpRefrence/
