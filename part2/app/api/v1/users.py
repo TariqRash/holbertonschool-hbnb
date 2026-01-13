@@ -39,14 +39,17 @@ class UserList(Resource):
     @api.marshal_with(user_model, code=HTTPStatus.CREATED)
     def post(self):
         data = request.get_json(force=True)
-        user = facade.create_user(
-            email=data.get("email"),
-            password=data.get("password"),
-            first_name=data.get("first_name"),
-            last_name=data.get("last_name"),
-            is_admin=data.get("is_admin", False),
-        )
-        return user.to_dict(), HTTPStatus.CREATED
+        try:
+            user = facade.create_user(
+                email=data.get("email"),
+                password=data.get("password"),
+                first_name=data.get("first_name"),
+                last_name=data.get("last_name"),
+                is_admin=data.get("is_admin", False),
+            )
+            return user.to_dict(), HTTPStatus.CREATED
+        except ValueError as e:
+            api.abort(HTTPStatus.BAD_REQUEST, str(e))
 
 
 @api.route("/<string:user_id>")

@@ -72,11 +72,11 @@ class TestUser(unittest.TestCase):
 
     def test_user_validation_long_email(self):
         """Test validation fails with extremely long email."""
-        long_email = "a" * 250 + "@test.com"
+        long_email = "a" * 45 + "@test.com"
         user = User(email=long_email, password="password123")
         is_valid, error = user.validate()
         self.assertFalse(is_valid)
-        self.assertEqual(error, "Email must be under 255 characters")
+        self.assertEqual(error, "Email must be under 50 characters")
 
     def test_user_validation_long_first_name(self):
         """Test validation fails with long first name."""

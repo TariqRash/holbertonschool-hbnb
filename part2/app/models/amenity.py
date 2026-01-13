@@ -14,8 +14,8 @@ class Amenity(BaseModel):
             return False, "Amenity name is required"
         if not isinstance(self.name, str):
             return False, "Amenity name must be a string"
-        if len(self.name) > 100:
-            return False, "Amenity name must be under 100 characters"
+        if len(self.name) > 50:
+            return False, "Amenity name must be under 50 characters"
         if len(self.name) < 1:
             return False, "Amenity name cannot be empty"
         
