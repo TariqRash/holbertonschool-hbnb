@@ -1,0 +1,141 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0 -- /Users/tariq/holbertonschool-hbnb/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/tariq/holbertonschool-hbnb/part2
+collecting ... collected 101 items
+
+tests/test_amenity.py::TestAmenity::test_amenity_default_values PASSED   [  0%]
+tests/test_amenity.py::TestAmenity::test_amenity_initialization PASSED   [  1%]
+tests/test_amenity.py::TestAmenity::test_amenity_max_length_description PASSED [  2%]
+tests/test_amenity.py::TestAmenity::test_amenity_max_length_name PASSED  [  3%]
+tests/test_amenity.py::TestAmenity::test_amenity_strip_whitespace PASSED [  4%]
+tests/test_amenity.py::TestAmenity::test_amenity_to_dict PASSED          [  5%]
+tests/test_amenity.py::TestAmenity::test_amenity_validation_description_too_long PASSED [  6%]
+tests/test_amenity.py::TestAmenity::test_amenity_validation_name_too_long PASSED [  7%]
+tests/test_amenity.py::TestAmenity::test_amenity_validation_no_name PASSED [  8%]
+tests/test_amenity.py::TestAmenity::test_amenity_validation_only_whitespace_name PASSED [  9%]
+tests/test_amenity.py::TestAmenity::test_amenity_validation_valid PASSED [ 10%]
+tests/test_amenity.py::TestAmenity::test_amenity_validation_valid_with_no_description PASSED [ 11%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_create_amenity PASSED [ 12%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_create_place PASSED  [ 13%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_create_place_with_invalid_owner PASSED [ 14%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_create_review PASSED [ 15%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_create_user PASSED   [ 16%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_delete_review PASSED [ 17%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_get_amenity PASSED   [ 18%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_get_nonexistent_user PASSED [ 19%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_get_place PASSED     [ 20%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_get_place_reviews PASSED [ 21%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_get_review PASSED    [ 22%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_get_user PASSED      [ 23%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_list_amenities PASSED [ 24%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_list_places PASSED   [ 25%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_list_users PASSED    [ 26%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_update_amenity PASSED [ 27%]
+tests/test_api_endpoints.py::TestAPIEndpoints::test_update_user PASSED   [ 28%]
+tests/test_base_model.py::TestBaseModel::test_initialization_default PASSED [ 29%]
+tests/test_base_model.py::TestBaseModel::test_initialization_with_kwargs PASSED [ 30%]
+tests/test_base_model.py::TestBaseModel::test_to_dict PASSED             [ 31%]
+tests/test_base_model.py::TestBaseModel::test_touch PASSED               [ 32%]
+tests/test_base_model.py::TestBaseModel::test_unique_ids PASSED          [ 33%]
+tests/test_base_model.py::TestBaseModel::test_update PASSED              [ 34%]
+tests/test_facade.py::TestFacade::test_create_and_get_amenity PASSED     [ 35%]
+tests/test_facade.py::TestFacade::test_create_and_get_user PASSED        [ 36%]
+tests/test_facade.py::TestFacade::test_create_place_with_amenities PASSED [ 37%]
+tests/test_facade.py::TestFacade::test_create_place_with_invalid_amenity PASSED [ 38%]
+tests/test_facade.py::TestFacade::test_create_place_with_invalid_owner PASSED [ 39%]
+tests/test_facade.py::TestFacade::test_create_place_with_valid_owner PASSED [ 40%]
+tests/test_facade.py::TestFacade::test_create_review_with_invalid_place PASSED [ 41%]
+tests/test_facade.py::TestFacade::test_create_review_with_invalid_user PASSED [ 42%]
+tests/test_facade.py::TestFacade::test_create_review_with_valid_user_and_place PASSED [ 43%]
+tests/test_facade.py::TestFacade::test_delete_nonexistent_review PASSED  [ 44%]
+tests/test_facade.py::TestFacade::test_delete_review PASSED              [ 45%]
+tests/test_facade.py::TestFacade::test_list_amenities PASSED             [ 46%]
+tests/test_facade.py::TestFacade::test_list_places PASSED                [ 47%]
+tests/test_facade.py::TestFacade::test_list_reviews_for_place PASSED     [ 48%]
+tests/test_facade.py::TestFacade::test_list_users PASSED                 [ 49%]
+tests/test_facade.py::TestFacade::test_update_amenity PASSED             [ 50%]
+tests/test_facade.py::TestFacade::test_update_nonexistent_user PASSED    [ 51%]
+tests/test_facade.py::TestFacade::test_update_place PASSED               [ 52%]
+tests/test_facade.py::TestFacade::test_update_user PASSED                [ 53%]
+tests/test_place.py::TestPlace::test_place_add_amenity PASSED            [ 54%]
+tests/test_place.py::TestPlace::test_place_default_values PASSED         [ 55%]
+tests/test_place.py::TestPlace::test_place_initialization PASSED         [ 56%]
+tests/test_place.py::TestPlace::test_place_remove_amenity PASSED         [ 57%]
+tests/test_place.py::TestPlace::test_place_strip_whitespace PASSED       [ 58%]
+tests/test_place.py::TestPlace::test_place_to_dict PASSED                [ 59%]
+tests/test_place.py::TestPlace::test_place_validation_description_too_long PASSED [ 60%]
+tests/test_place.py::TestPlace::test_place_validation_latitude_too_high PASSED [ 61%]
+tests/test_place.py::TestPlace::test_place_validation_latitude_too_low PASSED [ 62%]
+tests/test_place.py::TestPlace::test_place_validation_longitude_too_high PASSED [ 63%]
+tests/test_place.py::TestPlace::test_place_validation_longitude_too_low PASSED [ 64%]
+tests/test_place.py::TestPlace::test_place_validation_negative_price PASSED [ 65%]
+tests/test_place.py::TestPlace::test_place_validation_no_owner_id PASSED [ 66%]
+tests/test_place.py::TestPlace::test_place_validation_no_title PASSED    [ 67%]
+tests/test_place.py::TestPlace::test_place_validation_price_too_high PASSED [ 68%]
+tests/test_place.py::TestPlace::test_place_validation_title_too_long PASSED [ 69%]
+tests/test_place.py::TestPlace::test_place_validation_valid PASSED       [ 70%]
+tests/test_place.py::TestPlace::test_place_validation_zero_price PASSED  [ 71%]
+tests/test_review.py::TestReview::test_review_initialization PASSED      [ 72%]
+tests/test_review.py::TestReview::test_review_maximum_valid_text_length PASSED [ 73%]
+tests/test_review.py::TestReview::test_review_minimum_valid_text_length PASSED [ 74%]
+tests/test_review.py::TestReview::test_review_rating_conversion_to_int PASSED [ 75%]
+tests/test_review.py::TestReview::test_review_strip_whitespace PASSED    [ 76%]
+tests/test_review.py::TestReview::test_review_to_dict PASSED             [ 77%]
+tests/test_review.py::TestReview::test_review_validation_all_ratings PASSED [ 78%]
+tests/test_review.py::TestReview::test_review_validation_no_place_id PASSED [ 79%]
+tests/test_review.py::TestReview::test_review_validation_no_text PASSED  [ 80%]
+tests/test_review.py::TestReview::test_review_validation_no_user_id PASSED [ 81%]
+tests/test_review.py::TestReview::test_review_validation_rating_too_high PASSED [ 82%]
+tests/test_review.py::TestReview::test_review_validation_rating_too_low PASSED [ 83%]
+tests/test_review.py::TestReview::test_review_validation_text_too_long PASSED [ 84%]
+tests/test_review.py::TestReview::test_review_validation_text_too_short PASSED [ 85%]
+tests/test_review.py::TestReview::test_review_validation_valid PASSED    [ 86%]
+tests/test_user.py::TestUser::test_user_default_values PASSED            [ 87%]
+tests/test_user.py::TestUser::test_user_initialization PASSED            [ 88%]
+tests/test_user.py::TestUser::test_user_is_admin_bool_conversion PASSED  [ 89%]
+tests/test_user.py::TestUser::test_user_strip_whitespace PASSED          [ 90%]
+tests/test_user.py::TestUser::test_user_to_dict PASSED                   [ 91%]
+tests/test_user.py::TestUser::test_user_validation_invalid_email_format PASSED [ 92%]
+tests/test_user.py::TestUser::test_user_validation_long_email PASSED     [ 93%]
+tests/test_user.py::TestUser::test_user_validation_long_first_name PASSED [ 94%]
+tests/test_user.py::TestUser::test_user_validation_long_last_name PASSED [ 95%]
+tests/test_user.py::TestUser::test_user_validation_no_at_symbol PASSED   [ 96%]
+tests/test_user.py::TestUser::test_user_validation_no_email PASSED       [ 97%]
+tests/test_user.py::TestUser::test_user_validation_no_password PASSED    [ 98%]
+tests/test_user.py::TestUser::test_user_validation_short_password PASSED [ 99%]
+tests/test_user.py::TestUser::test_user_validation_valid PASSED          [100%]
+
+=============================== warnings summary ===============================
+tests/test_amenity.py: 12 warnings
+tests/test_api_endpoints.py: 34 warnings
+tests/test_base_model.py: 7 warnings
+tests/test_facade.py: 37 warnings
+tests/test_place.py: 18 warnings
+tests/test_review.py: 19 warnings
+tests/test_user.py: 16 warnings
+  /Users/tariq/holbertonschool-hbnb/part2/app/models/base_model.py:9: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self.created_at = kwargs.get("created_at", datetime.utcnow())
+
+tests/test_amenity.py: 12 warnings
+tests/test_api_endpoints.py: 34 warnings
+tests/test_base_model.py: 7 warnings
+tests/test_facade.py: 37 warnings
+tests/test_place.py: 18 warnings
+tests/test_review.py: 19 warnings
+tests/test_user.py: 16 warnings
+  /Users/tariq/holbertonschool-hbnb/part2/app/models/base_model.py:10: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self.updated_at = kwargs.get("updated_at", datetime.utcnow())
+
+tests/test_api_endpoints.py::TestAPIEndpoints::test_update_amenity
+tests/test_api_endpoints.py::TestAPIEndpoints::test_update_user
+tests/test_base_model.py::TestBaseModel::test_touch
+tests/test_base_model.py::TestBaseModel::test_update
+tests/test_facade.py::TestFacade::test_update_amenity
+tests/test_facade.py::TestFacade::test_update_place
+tests/test_facade.py::TestFacade::test_update_user
+  /Users/tariq/holbertonschool-hbnb/part2/app/models/base_model.py:20: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    self.updated_at = datetime.utcnow()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+====================== 101 passed, 293 warnings in 0.29s =======================
