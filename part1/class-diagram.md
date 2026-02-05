@@ -425,7 +425,7 @@ classDiagram
 user = User(
     first_name="Tariq",
     last_name="Almutairi",
-    email="tariq@ib.sa",
+    email="tariq@hostworksa.com",
     password="SecurePass123"
 )
 user.register()
@@ -483,7 +483,7 @@ avg_rating = place.calculate_average_rating()  # Returns 5.0
 ---
 
 **Created by:** Tariq Rashed Almutairi  
-**Company:** Integrated Business for Technology and Communications (IB)  
+**Organization:** Holberton School Saudi Arabia  
 **Project:** HBnB Evolution - Part 1  
 **Date:** December 2025  
 **Version:** 1.0

@@ -18,7 +18,7 @@ This project is part of Holberton School's Advanced Backend Specialization, show
 | **Shaden Khaled Almansour** | Package Architecture | shadeenn1424@gmail.com |
 | **Nora Mohammed Alsakran** | Sequence Diagrams | none.als012@gmail.com |
 
-**Organization:** Integrated Business for Technology and Communications (IB)  
+**Organization:** Holberton School Saudi Arabia  
 **Location:** Riyadh, Saudi Arabia 🇸🇦
 
 ## 📁 Project Structure
@@ -72,7 +72,7 @@ All technical documentation is located in the [`part1/`](./part1/) directory:
 
 ## 🤝 Contributing
 
-This project is developed by IB team members as part of Holberton School's curriculum.
+This project is developed by our team as part of Holberton School's curriculum.
 
 ### Workflow
 1. Clone the repository
