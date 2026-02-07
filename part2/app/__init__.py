@@ -4,6 +4,7 @@ from flask_restx import Api
 
 def create_app(config_name: str = "development") -> Flask:
 	app = Flask(__name__)
+	app.url_map.strict_slashes = False  # Allow trailing slashes
 
 	api = Api(
 		app,

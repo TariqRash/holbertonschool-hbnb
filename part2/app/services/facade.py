@@ -19,6 +19,11 @@ class Facade:
         last_name: Optional[str] = None,
         is_admin: bool = False,
     ) -> Optional[User]:
+        # Check if email already exists
+        existing_user = self.repo.get_by_attribute("User", "email", email)
+        if existing_user:
+            raise ValueError("Email already registered")
+        
         user = User(
             email=email,
             password=password,

@@ -34,10 +34,10 @@ class TestAmenity(unittest.TestCase):
 
     def test_amenity_validation_name_too_long(self):
         """Test validation fails when name is too long."""
-        amenity = Amenity(name="A" * 101, description="Description")
+        amenity = Amenity(name="A" * 51, description="Description")
         is_valid, error = amenity.validate()
         self.assertFalse(is_valid)
-        self.assertEqual(error, "Amenity name must be under 100 characters")
+        self.assertEqual(error, "Amenity name must be under 50 characters")
 
     def test_amenity_validation_description_too_long(self):
         """Test validation fails when description is too long."""
@@ -81,7 +81,7 @@ class TestAmenity(unittest.TestCase):
 
     def test_amenity_max_length_name(self):
         """Test amenity with maximum allowed name length."""
-        amenity = Amenity(name="A" * 100, description="Valid")
+        amenity = Amenity(name="A" * 50, description="Valid")
         is_valid, error = amenity.validate()
         self.assertTrue(is_valid)
         self.assertIsNone(error)

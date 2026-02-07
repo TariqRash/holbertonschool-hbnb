@@ -27,6 +27,14 @@ class Repository:
     def get_all(self, entity_type: str) -> List[Any]:
         return list(self._bucket(entity_type).values())
 
+    def get_by_attribute(self, entity_type: str, attribute: str, value: Any) -> Optional[Any]:
+        """Get entity by attribute value."""
+        bucket = self._bucket(entity_type)
+        for entity in bucket.values():
+            if getattr(entity, attribute, None) == value:
+                return entity
+        return None
+
     def update(self, entity) -> None:
         entity_type = entity.__class__.__name__
         bucket = self._bucket(entity_type)

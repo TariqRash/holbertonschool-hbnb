@@ -23,8 +23,8 @@ class User(BaseModel):
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(email_pattern, self.email):
             return False, "Invalid email format"
-        if len(self.email) > 255:
-            return False, "Email must be under 255 characters"
+        if len(self.email) > 50:
+            return False, "Email must be under 50 characters"
         
         # Password validation
         if not self.password:
