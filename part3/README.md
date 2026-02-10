@@ -151,6 +151,11 @@ curl -X GET http://localhost:5000/api/v1/users/ \
 - **Place → Reviews**: One-to-Many (place has reviews)
 - **Place ↔ Amenity**: Many-to-Many (via place_amenity table)
 
+### ER Diagram
+The complete Entity-Relationship diagram is available in `docs/er_diagram.md` using Mermaid.js syntax.
+
+**To export as an image**: See `docs/EXPORT_DIAGRAM_INSTRUCTIONS.md` for detailed instructions on exporting the diagram to PNG/SVG format using Mermaid Live Editor, VS Code, or command-line tools.
+
 ### Initial Data
 - **Admin User**: `admin@hbnb.io` / `admin1234`
 - **Amenities**: WiFi, Swimming Pool, Air Conditioning
