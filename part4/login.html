@@ -3,40 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HBnB - Login</title>
+    <title data-i18n="login.title">HBnB - Login</title>
     <link rel="icon" href="images/icon.png" type="image/png">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="toast.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <header>
         <a href="index.html">
-            <img src="images/logo.png" alt="HBnB Logo" class="logo">
+            <img src="images/logo.png" alt="HBnB Logo" class="logo" id="header-logo">
         </a>
         <nav>
-            <a href="index.html">Home</a>
+            <a href="index.html" data-i18n="nav.home">Home</a>
+            <div class="header-controls">
+                <button class="lang-toggle" id="lang-toggle" onclick="toggleLanguage()" title="Switch Language">AR</button>
+                <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                    <i data-lucide="moon"></i>
+                </button>
+            </div>
         </nav>
     </header>
 
-    <main>
+    <main class="page-transition">
         <form id="login-form">
-            <h2>Welcome Back</h2>
-            <p class="subtitle">Sign in to your HBnB account</p>
+            <h2 data-i18n="login.title">Welcome Back</h2>
+            <p class="subtitle" data-i18n="login.subtitle">Sign in to your HBnB account</p>
 
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="you@example.com" required>
+            <label for="email" data-i18n="login.email.label">Email</label>
+            <input type="email" id="email" name="email" data-i18n="login.email.placeholder" placeholder="you@example.com" required>
 
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            <label for="password" data-i18n="login.password.label">Password</label>
+            <input type="password" id="password" name="password" data-i18n="login.password.placeholder" placeholder="Enter your password" required>
 
-            <button type="submit">Sign In</button>
+            <button type="submit" data-i18n="login.submit">Sign In</button>
             <p id="login-error"></p>
         </form>
     </main>
 
     <footer>
-        <p>&copy; 2026 HBnB Evolution - All Rights Reserved</p>
+        <p data-i18n="footer.copy">&copy; 2026 HBnB Evolution - All Rights Reserved</p>
     </footer>
 
+    <script src="i18n.js"></script>
+    <script src="toast.js"></script>
     <script src="scripts.js"></script>
 </body>
 </html>

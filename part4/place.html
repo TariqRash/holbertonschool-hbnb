@@ -3,22 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HBnB - Place Details</title>
+    <title data-i18n="place.title">HBnB - Place Details</title>
     <link rel="icon" href="images/icon.png" type="image/png">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="toast.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <header>
         <a href="index.html">
-            <img src="images/logo.png" alt="HBnB Logo" class="logo">
+            <img src="images/logo.png" alt="HBnB Logo" class="logo" id="header-logo">
         </a>
         <nav>
-            <a href="index.html">Home</a>
-            <a href="login.html" id="login-link" class="login-button">Login</a>
+            <a href="index.html" data-i18n="nav.home">Home</a>
+            <div class="header-controls">
+                <button class="lang-toggle" id="lang-toggle" onclick="toggleLanguage()" title="Switch Language">AR</button>
+                <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle Dark Mode">
+                    <i data-lucide="moon"></i>
+                </button>
+            </div>
+            <a href="login.html" id="login-link" class="login-button" data-i18n="nav.login">Login</a>
         </nav>
     </header>
 
-    <main>
+    <main class="page-transition">
         <section id="place-details">
             <!-- Loading skeleton -->
             <div class="skeleton" style="height: 36px; width: 60%; margin-bottom: 1rem;"></div>
@@ -27,36 +35,38 @@
         </section>
 
         <section id="reviews">
-            <h2>Reviews</h2>
+            <h2 data-i18n="reviews.title">Reviews</h2>
             <!-- Reviews will be populated dynamically by JavaScript -->
         </section>
 
         <section id="add-review">
-            <h2>Add a Review</h2>
+            <h2 data-i18n="reviews.add.title">Add a Review</h2>
             <form id="review-form" class="form">
-                <label for="review-text">Your Review</label>
-                <textarea id="review-text" name="review-text" placeholder="Share your experience with this place..." required></textarea>
+                <label for="review-text" data-i18n="reviews.add.textLabel">Your Review</label>
+                <textarea id="review-text" name="review-text" data-i18n="reviews.add.textPlaceholder" placeholder="Share your experience with this place..." required></textarea>
 
-                <label for="rating">Rating</label>
+                <label for="rating" data-i18n="reviews.add.ratingLabel">Rating</label>
                 <select id="rating" name="rating" required>
-                    <option value="">Select a rating</option>
-                    <option value="1">★ 1 - Poor</option>
-                    <option value="2">★★ 2 - Fair</option>
-                    <option value="3">★★★ 3 - Good</option>
-                    <option value="4">★★★★ 4 - Great</option>
-                    <option value="5">★★★★★ 5 - Excellent</option>
+                    <option value="" data-i18n="reviews.add.ratingDefault">Select a rating</option>
+                    <option value="1" data-i18n="reviews.add.rating1">★ 1 - Poor</option>
+                    <option value="2" data-i18n="reviews.add.rating2">★★ 2 - Fair</option>
+                    <option value="3" data-i18n="reviews.add.rating3">★★★ 3 - Good</option>
+                    <option value="4" data-i18n="reviews.add.rating4">★★★★ 4 - Great</option>
+                    <option value="5" data-i18n="reviews.add.rating5">★★★★★ 5 - Excellent</option>
                 </select>
 
-                <button type="submit">Submit Review</button>
+                <button type="submit" data-i18n="reviews.add.submit">Submit Review</button>
                 <p id="review-message"></p>
             </form>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2026 HBnB Evolution - All Rights Reserved</p>
+        <p data-i18n="footer.copy">&copy; 2026 HBnB Evolution - All Rights Reserved</p>
     </footer>
 
+    <script src="i18n.js"></script>
+    <script src="toast.js"></script>
     <script src="scripts.js"></script>
 </body>
 </html>
