@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBnB Admin - Dashboard</title>
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../toast.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="../images/logo.png" alt="HBnB" class="admin-logo">
+            <h2>HBnB</h2>
+            <span>Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="active">
+                <i data-lucide="layout-dashboard"></i> Dashboard
+            </a>
+            <a href="users.html">
+                <i data-lucide="users"></i> Users
+            </a>
+            <a href="places.html">
+                <i data-lucide="map-pin"></i> Places
+            </a>
+            <a href="reviews.html">
+                <i data-lucide="message-square"></i> Reviews
+            </a>
+            <a href="amenities.html">
+                <i data-lucide="sparkles"></i> Amenities
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" onclick="adminLogout()">
+                <i data-lucide="log-out"></i> Sign Out
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <h1>Dashboard</h1>
+            <div class="topbar-actions">
+                <a href="../index.html" class="btn-back">
+                    <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Main Site
+                </a>
+            </div>
+        </div>
+
+        <div class="admin-content">
+            <!-- Stats -->
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon users"><i data-lucide="users"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-users">—</h3>
+                        <p>Total Users</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon places"><i data-lucide="map-pin"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-places">—</h3>
+                        <p>Total Places</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon reviews"><i data-lucide="message-square"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-reviews">—</h3>
+                        <p>Total Reviews</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon amenities"><i data-lucide="sparkles"></i></div>
+                    <div class="stat-info">
+                        <h3 id="stat-amenities">—</h3>
+                        <p>Amenities</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Users -->
+            <div class="admin-table-wrapper">
+                <div class="table-header">
+                    <h2>Recent Users</h2>
+                    <a href="users.html" class="btn-add" style="background:transparent;border:1px solid var(--admin-border);color:var(--admin-text-muted);">
+                        View All →
+                    </a>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-users">
+                        <tr><td colspan="3" style="text-align:center;color:var(--admin-text-muted);padding:2rem;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Recent Places -->
+            <div class="admin-table-wrapper">
+                <div class="table-header">
+                    <h2>Recent Places</h2>
+                    <a href="places.html" class="btn-add" style="background:transparent;border:1px solid var(--admin-border);color:var(--admin-text-muted);">
+                        View All →
+                    </a>
+                </div>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Price</th>
+                            <th>Owner</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-places">
+                        <tr><td colspan="3" style="text-align:center;color:var(--admin-text-muted);padding:2rem;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="../toast.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
