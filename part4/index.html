@@ -22,15 +22,18 @@
         <section id="filter">
             <label for="price-filter">Max Price:</label>
             <select id="price-filter">
-                <option value="all">All</option>
-                <option value="10">$10</option>
-                <option value="50">$50</option>
-                <option value="100">$100</option>
+                <option value="all">All Prices</option>
+                <option value="10">Under $10</option>
+                <option value="50">Under $50</option>
+                <option value="100">Under $100</option>
             </select>
         </section>
 
         <section id="places-list">
-            <!-- Place cards will be populated dynamically by JavaScript -->
+            <!-- Loading skeleton placeholders -->
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
         </section>
     </main>
 

@@ -20,7 +20,10 @@
 
     <main>
         <section id="place-details">
-            <!-- Place details will be populated dynamically by JavaScript -->
+            <!-- Loading skeleton -->
+            <div class="skeleton" style="height: 36px; width: 60%; margin-bottom: 1rem;"></div>
+            <div class="skeleton" style="height: 80px; margin-bottom: 1rem;"></div>
+            <div class="skeleton" style="height: 120px;"></div>
         </section>
 
         <section id="reviews">
@@ -31,17 +34,17 @@
         <section id="add-review">
             <h2>Add a Review</h2>
             <form id="review-form" class="form">
-                <label for="review-text">Your Review:</label>
-                <textarea id="review-text" name="review-text" required></textarea>
+                <label for="review-text">Your Review</label>
+                <textarea id="review-text" name="review-text" placeholder="Share your experience with this place..." required></textarea>
 
-                <label for="rating">Rating:</label>
+                <label for="rating">Rating</label>
                 <select id="rating" name="rating" required>
                     <option value="">Select a rating</option>
-                    <option value="1">&#9733; 1</option>
-                    <option value="2">&#9733; 2</option>
-                    <option value="3">&#9733; 3</option>
-                    <option value="4">&#9733; 4</option>
-                    <option value="5">&#9733; 5</option>
+                    <option value="1">★ 1 - Poor</option>
+                    <option value="2">★★ 2 - Fair</option>
+                    <option value="3">★★★ 3 - Good</option>
+                    <option value="4">★★★★ 4 - Great</option>
+                    <option value="5">★★★★★ 5 - Excellent</option>
                 </select>
 
                 <button type="submit">Submit Review</button>

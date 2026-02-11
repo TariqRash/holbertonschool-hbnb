@@ -79,6 +79,13 @@ async function handleLogin(event) {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const errorEl = document.getElementById('login-error');
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+
+    // Loading state
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Signing in…';
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.7';
 
     try {
         const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -97,13 +104,16 @@ async function handleLogin(event) {
             window.location.href = 'index.html';
         } else {
             const errData = await response.json().catch(() => null);
-            const msg = errData && errData.error ? errData.error : 'Login failed: ' + response.statusText;
+            const msg = errData && errData.error ? errData.error : 'Login failed. Please check your credentials.';
             if (errorEl) {
                 errorEl.textContent = msg;
                 errorEl.style.display = 'block';
             } else {
                 alert(msg);
             }
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
         }
     } catch (error) {
         const msg = 'Network error. Please try again.';
@@ -113,6 +123,9 @@ async function handleLogin(event) {
         } else {
             alert(msg);
         }
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
     }
 }
 
@@ -162,19 +175,24 @@ function displayPlaces(places) {
     placesList.innerHTML = '';
 
     if (places.length === 0) {
-        placesList.innerHTML = '<p>No places found.</p>';
+        placesList.innerHTML = '<div class="empty-state"><p>No places found matching your criteria.</p></div>';
         return;
     }
 
-    places.forEach(place => {
+    places.forEach((place, index) => {
         const card = document.createElement('div');
         card.className = 'place-card';
         card.dataset.price = place.price;
+        card.style.animationDelay = `${index * 0.08}s`;
+
+        const desc = place.description
+            ? (place.description.length > 120 ? escapeHTML(place.description.slice(0, 120)) + '…' : escapeHTML(place.description))
+            : 'No description available.';
 
         card.innerHTML = `
             <h3>${escapeHTML(place.title)}</h3>
-            <p class="price">$${Number(place.price).toFixed(2)} per night</p>
-            <p>${escapeHTML(place.description || 'No description available.')}</p>
+            <p class="price">$${Number(place.price).toFixed(2)} <span style="font-weight:400;font-size:0.85rem;color:#999">/ night</span></p>
+            <p>${desc}</p>
             <a href="place.html?id=${place.id}" class="details-button">View Details</a>
         `;
 
@@ -249,7 +267,7 @@ function displayPlaceDetails(place) {
             </div>
         `;
     } else {
-        amenitiesHTML = '<p>No amenities listed.</p>';
+        amenitiesHTML = '<p style="color:#999;font-style:italic;">No amenities listed.</p>';
     }
 
     // Build owner info
@@ -262,12 +280,12 @@ function displayPlaceDetails(place) {
         <div class="place-details">
             <h1>${escapeHTML(place.title)}</h1>
             <div class="place-info">
-                <p><strong>Host:</strong> ${ownerName}</p>
-                <p><strong>Price:</strong> $${Number(place.price).toFixed(2)} per night</p>
-                <p><strong>Location:</strong> ${place.latitude}, ${place.longitude}</p>
+                <p><strong>🏠 Host:</strong> ${ownerName}</p>
+                <p><strong>💰 Price:</strong> $${Number(place.price).toFixed(2)} / night</p>
+                <p><strong>📍 Location:</strong> ${place.latitude}, ${place.longitude}</p>
             </div>
             <p class="description">${escapeHTML(place.description || 'No description available.')}</p>
-            <h3>Amenities</h3>
+            <h3>🛎️ Amenities</h3>
             ${amenitiesHTML}
         </div>
     `;
@@ -288,20 +306,21 @@ function displayReviews(reviews) {
     reviewsSection.innerHTML = '<h2>Reviews</h2>';
 
     if (reviews.length === 0) {
-        reviewsSection.innerHTML += '<p>No reviews yet. Be the first to review!</p>';
+        reviewsSection.innerHTML += '<p style="color:#999;font-style:italic;padding:1rem 0;">No reviews yet. Be the first to share your experience!</p>';
         return;
     }
 
-    reviews.forEach(review => {
+    reviews.forEach((review, index) => {
         const card = document.createElement('div');
         card.className = 'review-card';
+        card.style.animationDelay = `${index * 0.1}s`;
 
         // Build star rating display
         const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
 
         card.innerHTML = `
             <p class="reviewer"><strong>${escapeHTML(review.user_name || 'Anonymous')}</strong></p>
-            <p class="rating">${stars} (${review.rating}/5)</p>
+            <p class="rating">${stars}</p>
             <p>${escapeHTML(review.text)}</p>
         `;
 
@@ -351,6 +370,7 @@ async function handlePlaceReviewSubmit(event, token, placeId) {
     const reviewText = document.getElementById('review-text').value;
     const rating = document.getElementById('rating').value;
     const messageEl = document.getElementById('review-message');
+    const submitBtn = event.target.querySelector('button[type="submit"]');
 
     if (!rating) {
         if (messageEl) {
@@ -359,6 +379,12 @@ async function handlePlaceReviewSubmit(event, token, placeId) {
         }
         return;
     }
+
+    // Loading state
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Submitting…';
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.7';
 
     const response = await submitReview(token, placeId, reviewText, rating);
 
@@ -370,6 +396,9 @@ async function handlePlaceReviewSubmit(event, token, placeId) {
         // Clear form
         document.getElementById('review-text').value = '';
         document.getElementById('rating').value = '';
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
         // Reload place details to show the new review
         setTimeout(() => {
             fetchPlaceDetails(token, placeId);
@@ -386,6 +415,9 @@ async function handlePlaceReviewSubmit(event, token, placeId) {
             messageEl.textContent = errorMsg;
             messageEl.className = 'error-message';
         }
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
     }
 }
 
