@@ -5,6 +5,52 @@
 // API base URL - change this to match your back-end server
 const API_BASE_URL = 'http://127.0.0.1:5000/api/v1';
 
+// ==================== DARK MODE ====================
+
+/**
+ * Get saved theme or default to 'light'
+ */
+function getSavedTheme() {
+    return localStorage.getItem('hbnb-theme') || 'light';
+}
+
+/**
+ * Apply the given theme to the page
+ * @param {string} theme - 'light' or 'dark'
+ */
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('hbnb-theme', theme);
+
+    // Update toggle button icon
+    const btn = document.getElementById('theme-toggle');
+    if (btn) {
+        btn.innerHTML = theme === 'dark'
+            ? '<i data-lucide="sun"></i>'
+            : '<i data-lucide="moon"></i>';
+        // Re-render Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+}
+
+/**
+ * Toggle between light and dark themes
+ */
+function toggleTheme() {
+    const current = getSavedTheme();
+    const next = current === 'light' ? 'dark' : 'light';
+    applyTheme(next);
+}
+
+/**
+ * Initialize theme on page load
+ */
+function initTheme() {
+    applyTheme(getSavedTheme());
+}
+
 // ==================== COOKIE HELPERS ====================
 
 /**
@@ -109,19 +155,19 @@ async function handleLogin(event) {
                 errorEl.textContent = msg;
                 errorEl.style.display = 'block';
             } else {
-                alert(msg);
+                showToast('error', t('toast.error'), msg);
             }
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
             submitBtn.style.opacity = '1';
         }
     } catch (error) {
-        const msg = 'Network error. Please try again.';
+        const msg = t('login.error.network');
         if (errorEl) {
             errorEl.textContent = msg;
             errorEl.style.display = 'block';
         } else {
-            alert(msg);
+            showToast('error', t('toast.error'), msg);
         }
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
@@ -445,14 +491,16 @@ async function handleAddReviewSubmit(event, token, placeId) {
     const response = await submitReview(token, placeId, reviewText, rating);
 
     if (response && response.ok) {
-        alert('Review submitted successfully!');
+        showToast('success', t('toast.success'), t('reviews.add.success'));
         // Clear form
         document.getElementById('review').value = '';
         document.getElementById('rating').value = '';
         // Redirect back to the place page
-        window.location.href = `place.html?id=${placeId}`;
+        setTimeout(() => {
+            window.location.href = `place.html?id=${placeId}`;
+        }, 1200);
     } else {
-        let errorMsg = 'Failed to submit review.';
+        let errorMsg = t('reviews.add.error');
         if (response) {
             const errData = await response.json().catch(() => null);
             if (errData && errData.error) {
@@ -463,7 +511,7 @@ async function handleAddReviewSubmit(event, token, placeId) {
             messageEl.textContent = errorMsg;
             messageEl.className = 'error-message';
         } else {
-            alert(errorMsg);
+            showToast('error', t('toast.error'), errorMsg);
         }
     }
 }
@@ -485,6 +533,19 @@ function escapeHTML(str) {
 // ==================== PAGE INITIALIZATION ====================
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize dark mode
+    initTheme();
+
+    // Initialize i18n
+    if (typeof initI18n === 'function') {
+        initI18n();
+    }
+
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
     // --- LOGIN PAGE ---
