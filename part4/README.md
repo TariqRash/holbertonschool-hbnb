@@ -2,6 +2,23 @@
 
 A front-end web client for the HBnB (Holberton BnB) application built with **HTML5**, **CSS3**, and **vanilla JavaScript**. This client communicates with the Part 3 Flask REST API to provide a complete user experience for browsing places, viewing details, and submitting reviews.
 
+## ✨ Features
+
+### Core Functionality
+- **Login** with JWT authentication (cookie-based)
+- **Browse places** with price filtering
+- **Place details** with amenities and reviews
+- **Submit reviews** with star ratings (authenticated users)
+
+### Enhanced Features
+- 🌍 **Language Switcher** — English / Arabic (RTL support)
+- 🌙 **Dark / Light Mode** — Theme toggle with localStorage persistence
+- 🔔 **Toast Notifications** — Elegant toasts replacing browser alerts
+- ✏️ **Lucide Icons** — Beautiful open-source SVG icons
+- 🅰️ **Premium Typography** — Playfair Display headings + Inter body
+- 📱 **Responsive Design** — Mobile-first with smooth page transitions
+- 🛡️ **Admin Panel** — Full CRUD dashboard for managing all entities
+
 ## Pages
 
 | Page | File | Description |
@@ -10,24 +27,42 @@ A front-end web client for the HBnB (Holberton BnB) application built with **HTM
 | **Login** | `login.html` | Authentication form with email/password |
 | **Place Details** | `place.html` | Detailed view of a place with reviews and amenities |
 | **Add Review** | `add_review.html` | Standalone review submission form (authenticated only) |
+| **Admin Login** | `admin/login.html` | Admin-only login (checks `is_admin` JWT claim) |
+| **Admin Dashboard** | `admin/index.html` | Stats overview with recent users and places |
+| **Admin Users** | `admin/users.html` | User management with create/edit modal |
+| **Admin Places** | `admin/places.html` | Place management with delete |
+| **Admin Reviews** | `admin/reviews.html` | Review moderation with delete |
+| **Admin Amenities** | `admin/amenities.html` | Amenity CRUD with modal |
 
 ## Project Structure
 
 ```
 part4/
-├── index.html          # Main page - list of places with price filter
-├── login.html          # Login form page
-├── place.html          # Place details with reviews
-├── add_review.html     # Review submission form
-├── styles.css          # All CSS styles (responsive, animations)
-├── scripts.js          # All JavaScript logic (API calls, DOM manipulation)
-├── README.md           # This file
-└── images/
-    ├── logo.png        # HBnB application logo
-    ├── icon.png        # Favicon (32x32)
-    ├── icon_bath.png   # Bath amenity icon
-    ├── icon_bed.png    # Bed amenity icon
-    └── icon_wifi.png   # WiFi amenity icon
+├── index.html              # Main page - list of places with price filter
+├── login.html              # Login form page
+├── place.html              # Place details with reviews
+├── add_review.html         # Review submission form
+├── styles.css              # All CSS styles (responsive, dark mode, RTL)
+├── scripts.js              # Main JavaScript logic (API calls, DOM, theme, i18n)
+├── i18n.js                 # Internationalization - EN/AR translations
+├── toast.js                # Toast notification system (JS)
+├── toast.css               # Toast notification styles
+├── README.md               # This file
+├── images/
+│   ├── logo.png            # HBnB application logo
+│   ├── icon.png            # Favicon (32x32)
+│   ├── icon_bath.png       # Bath amenity icon
+│   ├── icon_bed.png        # Bed amenity icon
+│   └── icon_wifi.png       # WiFi amenity icon
+└── admin/
+    ├── login.html          # Admin login page
+    ├── index.html          # Admin dashboard
+    ├── users.html          # User management
+    ├── places.html         # Place management
+    ├── reviews.html        # Review moderation
+    ├── amenities.html      # Amenity CRUD
+    ├── admin.js            # Admin panel JavaScript
+    └── styles.css          # Admin panel dark theme
 ```
 
 ## Setup & Running
@@ -163,3 +198,32 @@ const API_BASE_URL = 'http://127.0.0.1:5000/api/v1';
 - Breakpoints at 768px (tablet) and 480px (mobile)
 - CSS Grid layout for place cards adapts from 3 columns → 2 → 1
 - Navigation collapses for smaller screens
+
+### Dark / Light Mode
+- Toggle via the moon/sun button in the header
+- Saves preference to `localStorage` (`hbnb-theme`)
+- Complete dark theme with adjusted CSS custom properties
+- Header adopts a deep navy gradient in dark mode
+
+### Language Switcher (i18n)
+- Toggle between **English** and **Arabic** via the header button
+- Arabic mode enables full RTL layout with `dir="rtl"` on `<html>`
+- 50+ translated strings covering all UI text
+- Saves preference to `localStorage` (`hbnb-lang`)
+- Defaults to English so reviewers see English first
+
+### Toast Notifications
+- Beautiful slide-in notifications replace all `alert()` calls
+- Four types: success (green), error (red), warning (amber), info (blue)
+- Auto-dismiss with animated progress bar
+- Click to dismiss, limited to 5 visible at once
+
+### Admin Panel
+- Accessible at `admin/login.html` (requires `is_admin: true` in JWT)
+- **Dashboard**: Real-time stats cards (users, places, reviews, amenities)
+- **Users**: View all users, create/edit via modal
+- **Places**: View all places with owner info, delete functionality
+- **Reviews**: Moderate reviews across all places, delete functionality
+- **Amenities**: Full CRUD with create/edit modal and delete
+- Dark professional theme with sidebar navigation
+- Uses Lucide icons throughout
