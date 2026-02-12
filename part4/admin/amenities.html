@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBnB Admin - Amenities</title>
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../toast.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="../images/logo.png" alt="HBnB" class="admin-logo">
+            <h2>HBnB</h2>
+            <span>Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="users.html"><i data-lucide="users"></i> Users</a>
+            <a href="places.html"><i data-lucide="map-pin"></i> Places</a>
+            <a href="reviews.html"><i data-lucide="message-square"></i> Reviews</a>
+            <a href="amenities.html" class="active"><i data-lucide="sparkles"></i> Amenities</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" onclick="adminLogout()"><i data-lucide="log-out"></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <h1>Amenities</h1>
+            <div class="topbar-actions">
+                <button class="btn-add" onclick="openAmenityModal()">
+                    <i data-lucide="plus" style="width:16px;height:16px;"></i> Add Amenity
+                </button>
+            </div>
+        </div>
+
+        <div class="admin-content">
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="amenities-table">
+                        <tr><td colspan="3" style="text-align:center;color:var(--admin-text-muted);padding:2rem;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="amenity-modal">
+        <div class="modal">
+            <h3 id="amenity-modal-title">Add Amenity</h3>
+            <form class="modal-form" id="amenity-form">
+                <input type="hidden" id="amenity-id">
+                <label for="amenity-name">Amenity Name</label>
+                <input type="text" id="amenity-name" placeholder="e.g. Swimming Pool" required>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeAmenityModal()">Cancel</button>
+                    <button type="submit" class="btn-save">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../toast.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
