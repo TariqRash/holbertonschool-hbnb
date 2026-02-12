@@ -85,6 +85,26 @@ cd part3
 pip install -r requirements.txt
 ```
 
+### Database Setup
+
+**Quick Setup (Recommended):**
+```bash
+# Run the automated setup script
+./setup_database.sh
+```
+
+**Manual Setup:**
+```bash
+# Create instance directory
+mkdir -p instance
+
+# Apply schema and seed data
+sqlite3 instance/development.db < schema.sql
+sqlite3 instance/development.db < seed.sql
+```
+
+📖 For detailed database documentation, see [DATABASE.md](DATABASE.md)
+
 ### Running the Application
 
 ```bash
