@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBnB Admin - Reviews</title>
+    <link rel="icon" href="../images/icon.png" type="image/png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../toast.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="../images/logo.png" alt="HBnB" class="admin-logo">
+            <h2>HBnB</h2>
+            <span>Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="users.html"><i data-lucide="users"></i> Users</a>
+            <a href="places.html"><i data-lucide="map-pin"></i> Places</a>
+            <a href="reviews.html" class="active"><i data-lucide="message-square"></i> Reviews</a>
+            <a href="amenities.html"><i data-lucide="sparkles"></i> Amenities</a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" onclick="adminLogout()"><i data-lucide="log-out"></i> Sign Out</a>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="admin-main">
+        <div class="admin-topbar">
+            <h1>Reviews</h1>
+        </div>
+
+        <div class="admin-content">
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Place</th>
+                            <th>User</th>
+                            <th>Rating</th>
+                            <th>Text</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reviews-table">
+                        <tr><td colspan="5" style="text-align:center;color:var(--admin-text-muted);padding:2rem;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="../toast.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
