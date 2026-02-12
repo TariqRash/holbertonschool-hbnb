@@ -3,7 +3,7 @@
    ============================================ */
 
 /* --- Google Fonts Import --- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap');
 
 /* --- CSS Custom Properties --- */
 :root {
@@ -926,6 +926,7 @@ main h1,
 [dir="rtl"] body {
     direction: rtl;
     text-align: right;
+    font-family: 'Cairo', 'Inter', 'Segoe UI', Arial, sans-serif;
 }
 
 [dir="rtl"] header {
@@ -978,6 +979,16 @@ main h1,
 
 [dir="rtl"] .header-controls {
     flex-direction: row-reverse;
+}
+
+/* Cairo font for RTL headings */
+[dir="rtl"] main h1,
+[dir="rtl"] .place-details h1,
+[dir="rtl"] #login-form h2,
+[dir="rtl"] #add-review h2,
+[dir="rtl"] .add-review h2,
+[dir="rtl"] #reviews h2 {
+    font-family: 'Cairo', 'Georgia', serif;
 }
 
 /* ============================================
@@ -1035,3 +1046,310 @@ main h1,
     display: inline-block;
 }
 
+/* ============================================
+   CURRENCY SELECTOR
+   ============================================ */
+.currency-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+[dir="rtl"] .currency-wrapper {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.currency-label {
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+}
+
+.currency-selector {
+    padding: 0.55rem 0.85rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    background: var(--bg-card);
+    color: var(--text);
+    min-width: 110px;
+}
+
+.currency-selector:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-ghost);
+}
+
+/* ============================================
+   SCROLL TO TOP BUTTON
+   ============================================ */
+.scroll-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(12px);
+    transition: all var(--transition);
+    z-index: 50;
+}
+
+.scroll-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.scroll-to-top:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.scroll-to-top svg {
+    width: 20px;
+    height: 20px;
+}
+
+[dir="rtl"] .scroll-to-top {
+    right: auto;
+    left: 2rem;
+}
+
+/* ============================================
+   FAVORITES HEART BUTTON
+   ============================================ */
+.favorite-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.favorite-btn:hover {
+    transform: scale(1.15);
+    background: #fff;
+}
+
+.favorite-btn svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+}
+
+.favorite-btn.favorited svg {
+    color: var(--primary);
+    fill: var(--primary);
+}
+
+[dir="rtl"] .favorite-btn {
+    right: auto;
+    left: 0.75rem;
+}
+
+[data-theme="dark"] .favorite-btn {
+    background: rgba(30, 30, 30, 0.9);
+}
+
+/* ============================================
+   SEARCH BAR
+   ============================================ */
+.search-wrapper {
+    position: relative;
+    flex: 1;
+    max-width: 300px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.55rem 1rem 0.55rem 2.5rem;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-card);
+    color: var(--text);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-ghost);
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.search-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+[dir="rtl"] .search-input {
+    padding: 0.55rem 2.5rem 0.55rem 1rem;
+}
+
+[dir="rtl"] .search-icon {
+    left: auto;
+    right: 0.75rem;
+}
+
+/* ============================================
+   REVIEW CHARACTER COUNTER
+   ============================================ */
+.char-counter {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: -0.5rem;
+    transition: color 0.2s;
+}
+
+.char-counter.warn {
+    color: #f59e0b;
+}
+
+.char-counter.limit {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+[dir="rtl"] .char-counter {
+    text-align: left;
+}
+
+/* ============================================
+   SHARE BUTTON
+   ============================================ */
+.share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--bg);
+    color: var(--text-light);
+    border: 2px solid var(--border);
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    transition: all var(--transition);
+}
+
+.share-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-ghost);
+}
+
+.share-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    transition: color var(--transition);
+    background: none;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    padding: 0;
+}
+
+.back-btn:hover {
+    color: var(--primary);
+}
+
+.back-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ============================================
+   LOGOUT BUTTON IN NAV
+   ============================================ */
+.logout-button {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    color: #fff;
+    padding: 0.45rem 1.1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all var(--transition);
+}
+
+.logout-button:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+}
+
+/* ============================================
+   RESPONSIVE FILTER BAR
+   ============================================ */
+@media (max-width: 768px) {
+    #filter {
+        flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+        max-width: 100%;
+        order: -1;
+        flex-basis: 100%;
+    }
+
+    .currency-wrapper {
+        margin-left: 0;
+    }
+}

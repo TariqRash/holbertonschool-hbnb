@@ -11,13 +11,21 @@ A front-end web client for the HBnB (Holberton BnB) application built with **HTM
 - **Submit reviews** with star ratings (authenticated users)
 
 ### Enhanced Features
-- 🌍 **Language Switcher** — English / Arabic (RTL support)
+- 🌍 **Language Switcher** — English / Arabic (RTL support) with Google Cairo font
 - 🌙 **Dark / Light Mode** — Theme toggle with localStorage persistence
 - 🔔 **Toast Notifications** — Elegant toasts replacing browser alerts
 - ✏️ **Lucide Icons** — Beautiful open-source SVG icons
-- 🅰️ **Premium Typography** — Playfair Display headings + Inter body
+- 🅰️ **Premium Typography** — Playfair Display headings + Inter body + Cairo for Arabic
 - 📱 **Responsive Design** — Mobile-first with smooth page transitions
 - 🛡️ **Admin Panel** — Full CRUD dashboard for managing all entities
+- 💱 **Currency Converter** — Real-time exchange rates via Frankfurter API (7 currencies)
+- ❤️ **Favorites** — Save favorite places locally (localStorage-based)
+- 🔍 **Search** — Live text search across place titles and descriptions
+- ⬆️ **Scroll to Top** — Smooth scroll-to-top button on long pages
+- 📝 **Character Counter** — Live character count for review text areas
+- 🔗 **Share Button** — Web Share API with clipboard fallback
+- 🔙 **Back Navigation** — Quick back button on place details page
+- 🚪 **Logout Button** — Clear JWT and redirect to home
 
 ## Pages
 
@@ -45,6 +53,7 @@ part4/
 ├── styles.css              # All CSS styles (responsive, dark mode, RTL)
 ├── scripts.js              # Main JavaScript logic (API calls, DOM, theme, i18n)
 ├── i18n.js                 # Internationalization - EN/AR translations
+├── currency.js             # Currency converter module (Frankfurter API)
 ├── toast.js                # Toast notification system (JS)
 ├── toast.css               # Toast notification styles
 ├── README.md               # This file
@@ -227,3 +236,29 @@ const API_BASE_URL = 'http://127.0.0.1:5000/api/v1';
 - **Amenities**: Full CRUD with create/edit modal and delete
 - Dark professional theme with sidebar navigation
 - Uses Lucide icons throughout
+
+### Currency Converter
+- Powered by the free **Frankfurter API** (`frankfurter.app`) — no API key required
+- Supports 7 currencies: **USD ($)**, **EUR (€)**, **GBP (£)**, **SAR (﷼)**, **AED (د.إ)**, **JPY (¥)**, **TRY (₺)**
+- Exchange rates cached in `localStorage` with 1-hour TTL to minimize API calls
+- Currency preference persisted across sessions (`hbnb-currency` key)
+- Selector injected into the filter section on the index page
+- Prices update in real-time on both index cards and place details
+
+### Favorites System
+- Heart button on each place card to toggle favorites
+- Favorites saved in `localStorage` (`hbnb-favorites` key) — no account needed
+- Visual feedback with filled/unfilled heart + toast notification
+- Persists across page reloads
+
+### Search
+- Live text search input on the index page
+- Filters places by title and description as you type
+- Works in combination with the price filter
+
+### Additional UX Enhancements
+- **Scroll to Top**: Floating button appears after scrolling 300px, smooth scrolls to top
+- **Character Counter**: Live count on review text areas with visual warnings near limit (1000 chars)
+- **Share Button**: Uses Web Share API on supported devices, falls back to clipboard copy
+- **Back Button**: Quick navigation back from place details page
+- **Logout Button**: Visible when authenticated, clears JWT cookie and redirects to index

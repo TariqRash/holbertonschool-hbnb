@@ -82,7 +82,25 @@ const translations = {
 
     // Language
     "lang.en": "EN",
-    "lang.ar": "AR"
+    "lang.ar": "AR",
+
+    // Search
+    "index.search.placeholder": "Search places...",
+
+    // Currency
+    "currency.label": "Currency:",
+
+    // Favorites
+    "favorites.added": "Added to favorites",
+    "favorites.removed": "Removed from favorites",
+
+    // Place extras
+    "place.back": "Back",
+    "place.share": "Share",
+    "place.share.copied": "Link copied to clipboard!",
+
+    // Char counter
+    "reviews.add.charCount": "{count} / {max} characters"
   },
 
   ar: {
@@ -163,7 +181,25 @@ const translations = {
 
     // Language
     "lang.en": "EN",
-    "lang.ar": "AR"
+    "lang.ar": "AR",
+
+    // Search
+    "index.search.placeholder": "ابحث عن أماكن...",
+
+    // Currency
+    "currency.label": "العملة:",
+
+    // Favorites
+    "favorites.added": "تمت الإضافة إلى المفضلة",
+    "favorites.removed": "تمت الإزالة من المفضلة",
+
+    // Place extras
+    "place.back": "رجوع",
+    "place.share": "مشاركة",
+    "place.share.copied": "تم نسخ الرابط!",
+
+    // Char counter
+    "reviews.add.charCount": "{count} / {max} حرف"
   }
 };
 

@@ -74,6 +74,32 @@ function setCookie(name, value, days = 1) {
     document.cookie = name + '=' + value + '; path=/; expires=' + expires;
 }
 
+// ==================== FAVORITES (localStorage) ====================
+
+function getFavorites() {
+    try { return JSON.parse(localStorage.getItem('hbnb-favorites')) || []; }
+    catch (e) { return []; }
+}
+
+function saveFavorites(favs) {
+    localStorage.setItem('hbnb-favorites', JSON.stringify(favs));
+}
+
+function isFavorite(placeId) {
+    return getFavorites().includes(placeId);
+}
+
+function toggleFavorite(placeId) {
+    let favs = getFavorites();
+    if (favs.includes(placeId)) {
+        favs = favs.filter(id => id !== placeId);
+    } else {
+        favs.push(placeId);
+    }
+    saveFavorites(favs);
+    return favs.includes(placeId);
+}
+
 // ==================== AUTHENTICATION ====================
 
 /**
@@ -85,21 +111,29 @@ function getToken() {
 }
 
 /**
- * Check authentication and toggle login link visibility
+ * Check authentication and toggle login/logout link visibility
  */
 function checkAuthentication() {
     const token = getToken();
     const loginLink = document.getElementById('login-link');
+    const logoutBtn = document.getElementById('logout-btn');
 
     if (loginLink) {
-        if (!token) {
-            loginLink.style.display = 'block';
-        } else {
-            loginLink.style.display = 'none';
-        }
+        loginLink.style.display = token ? 'none' : 'block';
+    }
+    if (logoutBtn) {
+        logoutBtn.style.display = token ? 'inline-flex' : 'none';
     }
 
     return token;
+}
+
+/**
+ * Log out by clearing the token cookie and redirecting
+ */
+function handleLogout() {
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    window.location.href = 'index.html';
 }
 
 // ==================== URL HELPERS ====================
@@ -221,7 +255,7 @@ function displayPlaces(places) {
     placesList.innerHTML = '';
 
     if (places.length === 0) {
-        placesList.innerHTML = '<div class="empty-state"><p>No places found matching your criteria.</p></div>';
+        placesList.innerHTML = '<div class="empty-state"><p>' + t('index.empty') + '</p></div>';
         return;
     }
 
@@ -235,11 +269,20 @@ function displayPlaces(places) {
             ? (place.description.length > 120 ? escapeHTML(place.description.slice(0, 120)) + '…' : escapeHTML(place.description))
             : 'No description available.';
 
+        const priceStr = (typeof convertPrice === 'function')
+            ? convertPrice(place.price)
+            : '$' + Number(place.price).toFixed(2);
+
+        const favClass = isFavorite(place.id) ? ' favorited' : '';
+
         card.innerHTML = `
+            <button class="favorite-btn${favClass}" data-place-id="${place.id}" aria-label="Toggle favorite" onclick="handleFavoriteClick(event, this, '${place.id}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
             <h3>${escapeHTML(place.title)}</h3>
-            <p class="price">$${Number(place.price).toFixed(2)} <span style="font-weight:400;font-size:0.85rem;color:#999">/ night</span></p>
+            <p class="price">${priceStr} <span style="font-weight:400;font-size:0.85rem;color:#999">/ ${t('index.card.perNight')}</span></p>
             <p>${desc}</p>
-            <a href="place.html?id=${place.id}" class="details-button">View Details</a>
+            <a href="place.html?id=${place.id}" class="details-button">${t('index.card.viewDetails')}</a>
         `;
 
         placesList.appendChild(card);
@@ -247,20 +290,47 @@ function displayPlaces(places) {
 }
 
 /**
- * Filter displayed places by maximum price
- * @param {string} maxPrice - Maximum price value or "all"
+ * Handle favorite button click
  */
-function filterPlacesByPrice(maxPrice) {
+function handleFavoriteClick(evt, btn, placeId) {
+    if (evt) { evt.preventDefault(); evt.stopPropagation(); }
+    const nowFav = toggleFavorite(placeId);
+    if (nowFav) {
+        btn.classList.add('favorited');
+        if (typeof showToast === 'function') showToast('info', t('toast.info'), t('favorites.added'));
+    } else {
+        btn.classList.remove('favorited');
+        if (typeof showToast === 'function') showToast('info', t('toast.info'), t('favorites.removed'));
+    }
+}
+
+/**
+ * Filter displayed places by maximum price and search query
+ * @param {string} maxPrice - Maximum price value or "all"
+ * @param {string} [searchQuery] - Optional text search
+ */
+function filterPlacesByPrice(maxPrice, searchQuery) {
     const placesList = document.getElementById('places-list');
     if (!placesList) return;
 
-    if (maxPrice === 'all') {
-        displayPlaces(allPlaces);
-        return;
+    let filtered = allPlaces;
+
+    // Price filter
+    if (maxPrice && maxPrice !== 'all') {
+        const max = parseFloat(maxPrice);
+        filtered = filtered.filter(place => place.price <= max);
     }
 
-    const max = parseFloat(maxPrice);
-    const filtered = allPlaces.filter(place => place.price <= max);
+    // Search filter
+    const query = searchQuery || (document.getElementById('search-input') ? document.getElementById('search-input').value : '');
+    if (query && query.trim().length > 0) {
+        const q = query.trim().toLowerCase();
+        filtered = filtered.filter(place =>
+            (place.title && place.title.toLowerCase().includes(q)) ||
+            (place.description && place.description.toLowerCase().includes(q))
+        );
+    }
+
     displayPlaces(filtered);
 }
 
@@ -313,7 +383,7 @@ function displayPlaceDetails(place) {
             </div>
         `;
     } else {
-        amenitiesHTML = '<p style="color:#999;font-style:italic;">No amenities listed.</p>';
+        amenitiesHTML = '<p style="color:#999;font-style:italic;">' + t('place.noAmenities') + '</p>';
     }
 
     // Build owner info
@@ -322,22 +392,51 @@ function displayPlaceDetails(place) {
         ownerName = `${escapeHTML(place.owner.first_name)} ${escapeHTML(place.owner.last_name)}`;
     }
 
+    // Price with currency conversion
+    const priceStr = (typeof convertPrice === 'function')
+        ? convertPrice(place.price)
+        : '$' + Number(place.price).toFixed(2);
+
     detailsSection.innerHTML = `
+        <button class="back-btn" onclick="history.back()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            ${t('place.back')}
+        </button>
         <div class="place-details">
-            <h1>${escapeHTML(place.title)}</h1>
-            <div class="place-info">
-                <p><strong>🏠 Host:</strong> ${ownerName}</p>
-                <p><strong>💰 Price:</strong> $${Number(place.price).toFixed(2)} / night</p>
-                <p><strong>📍 Location:</strong> ${place.latitude}, ${place.longitude}</p>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;">
+                <h1>${escapeHTML(place.title)}</h1>
+                <button class="share-btn" onclick="sharePage()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                    ${t('place.share')}
+                </button>
             </div>
-            <p class="description">${escapeHTML(place.description || 'No description available.')}</p>
-            <h3>🛎️ Amenities</h3>
+            <div class="place-info">
+                <p><strong>🏠 ${t('place.host')}</strong> ${ownerName}</p>
+                <p><strong>💰 ${t('place.price')}</strong> ${priceStr} / ${t('index.card.perNight')}</p>
+                <p><strong>📍 ${t('place.location')}</strong> ${place.latitude}, ${place.longitude}</p>
+            </div>
+            <p class="description">${escapeHTML(place.description || t('place.noDescription'))}</p>
+            <h3>🛎️ ${t('place.amenities')}</h3>
             ${amenitiesHTML}
         </div>
     `;
 
     // Display reviews
     displayReviews(place.reviews || []);
+}
+
+/**
+ * Share the current page URL
+ */
+function sharePage() {
+    const url = window.location.href;
+    if (navigator.share) {
+        navigator.share({ title: document.title, url: url }).catch(() => {});
+    } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+            if (typeof showToast === 'function') showToast('success', t('toast.success'), t('place.share.copied'));
+        });
+    }
 }
 
 /**
@@ -546,6 +645,20 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     }
 
+    // Initialize currency converter
+    if (typeof initCurrency === 'function') {
+        initCurrency();
+    }
+
+    // Setup logout button
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+
+    // Create scroll-to-top button
+    createScrollToTop();
+
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 
     // --- LOGIN PAGE ---
@@ -569,6 +682,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 filterPlacesByPrice(event.target.value);
             });
         }
+
+        // Setup search input
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                const priceVal = document.getElementById('price-filter') ? document.getElementById('price-filter').value : 'all';
+                filterPlacesByPrice(priceVal, searchInput.value);
+            });
+        }
+
+        // Currency change callback — re-render cards
+        window.onCurrencyChange = function () {
+            const priceVal = document.getElementById('price-filter') ? document.getElementById('price-filter').value : 'all';
+            const searchVal = document.getElementById('search-input') ? document.getElementById('search-input').value : '';
+            filterPlacesByPrice(priceVal, searchVal);
+        };
     }
 
     // --- PLACE DETAILS PAGE ---
@@ -578,7 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!placeId) {
             document.getElementById('place-details').innerHTML =
-                '<p class="error-message">No place ID provided.</p>';
+                '<p class="error-message">' + t('place.error.noId') + '</p>';
             return;
         }
 
@@ -602,6 +731,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 handlePlaceReviewSubmit(event, token, placeId);
             });
         }
+
+        // Setup character counter for review textarea
+        setupCharCounter('review-text', 1000);
+
+        // Currency change callback — re-fetch to re-render
+        window.onCurrencyChange = function () {
+            fetchPlaceDetails(token, placeId);
+        };
     }
 
     // --- ADD REVIEW PAGE ---
@@ -622,5 +759,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleAddReviewSubmit(event, token, placeId);
             });
         }
+
+        // Setup character counter for review textarea
+        setupCharCounter('review', 1000);
     }
 });
+
+// ==================== SCROLL TO TOP ====================
+
+function createScrollToTop() {
+    const btn = document.createElement('button');
+    btn.className = 'scroll-to-top';
+    btn.setAttribute('aria-label', 'Scroll to top');
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>';
+    btn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.body.appendChild(btn);
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            btn.classList.add('visible');
+        } else {
+            btn.classList.remove('visible');
+        }
+    });
+}
+
+// ==================== CHARACTER COUNTER ====================
+
+function setupCharCounter(textareaId, maxChars) {
+    const textarea = document.getElementById(textareaId);
+    if (!textarea) return;
+
+    const counter = document.createElement('div');
+    counter.className = 'char-counter';
+    counter.textContent = '0 / ' + maxChars;
+    textarea.parentNode.insertBefore(counter, textarea.nextSibling);
+
+    textarea.addEventListener('input', () => {
+        const len = textarea.value.length;
+        counter.textContent = len + ' / ' + maxChars;
+        counter.classList.remove('warn', 'limit');
+        if (len > maxChars * 0.9) counter.classList.add('warn');
+        if (len >= maxChars) counter.classList.add('limit');
+        if (len > maxChars) {
+            textarea.value = textarea.value.slice(0, maxChars);
+            counter.textContent = maxChars + ' / ' + maxChars;
+        }
+    });
+}
