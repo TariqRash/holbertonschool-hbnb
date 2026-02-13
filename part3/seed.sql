@@ -3,7 +3,7 @@ INSERT INTO users (id, first_name, last_name, email, password, is_admin, created
 ('040cefc0-b72f-4f77-b669-90e7bd6f2266', 'John', 'Doe', 'john@example.com', '$2b$12$1ZpqSv8wZhA8TM4yp14wqOu4gDFkQHGiJeGuoncwDxwtZI4jC7bk2', 0, '2026-02-11 16:10:30.272879', '2026-02-14 19:35:48'),
 ('68c54daa-15e7-4a84-af68-f8da93847606', 'Tariq', 'Almutairi', 'Tariq@ib.com.sa', '$2b$12$pBIh9Rt3/SLI.DWzUugvOOnSq1dMp1TNPtNn.0LIrWEW7jG2y/L6q', 0, '2026-02-14 19:39:24.724325', '2026-02-14 19:39:24.724331'),
 ('36f28c19-c731-4190-91fc-e01a4063f0c8', 'Shaden', 'Almansour', 'Shaden@ib.com.sa', '$2b$12$BKBTwCDIZp16NNfYaTAmvOGU8z66c7HNYrNhjI9dGpqiSzjLoGUvW', 0, '2026-02-14 19:39:41.328310', '2026-02-14 19:39:41.328316'),
-('db89b1a8-0def-4f4c-929a-16f3c5a86862', 'Norah', 'Alsakran', 'Norah@ib.com', '$2b$12$tgu7XV.0sgbI6dIJGuJQyuuQACLh5.mzbZHl5XU3gSId2V8ZWRJvO', 0, '2026-02-14 19:40:09.190232', '2026-02-14 19:40:09.190237');
+('db89b1a8-0def-4f4c-929a-16f3c5a86862', 'Norah', 'Alsakran', 'Norah@ib.com.sa', '$2b$12$tgu7XV.0sgbI6dIJGuJQyuuQACLh5.mzbZHl5XU3gSId2V8ZWRJvO', 0, '2026-02-14 19:40:09.190232', '2026-02-14 19:40:09.190237');
 INSERT INTO amenities (id, name, created_at, updated_at) VALUES
 ('40926b37-99ea-4067-aa08-a3af55b511b0', 'WiFi', '2026-02-11 16:10:30.275801', '2026-02-11 16:10:30.275804'),
 ('87f22ccf-0694-4c7a-a7f1-f3bdabd67e17', 'Swimming Pool', '2026-02-11 16:10:30.276391', '2026-02-11 16:10:30.276393'),
