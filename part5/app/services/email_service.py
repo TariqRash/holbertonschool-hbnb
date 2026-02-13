@@ -44,12 +44,12 @@ def _send_email(to, subject, html):
 
 def send_otp_email(email, code):
     """Send OTP verification code"""
-    subject = f"رمز التحقق - HBnB | Your verification code"
+    subject = f"رمز التحقق - Rizi | Your verification code"
 
     html = f"""
     <div dir="rtl" style="font-family: 'Cairo', Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb;">
         <div style="text-align: center; margin-bottom: 20px;">
-            <h1 style="color: #1a1a2e; font-size: 24px;">🏠 HBnB</h1>
+            <h1 style="color: #1a1a2e; font-size: 24px;">Rizi</h1>
         </div>
 
         <h2 style="color: #333; text-align: center;">رمز التحقق الخاص بك</h2>
@@ -80,12 +80,12 @@ def send_otp_email(email, code):
 
 def send_magic_link_email(email, magic_url):
     """Send magic link for passwordless login"""
-    subject = f"رابط الدخول - HBnB | Login Link"
+    subject = f"رابط الدخول - Rizi | Login Link"
 
     html = f"""
     <div dir="rtl" style="font-family: 'Cairo', Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb;">
         <div style="text-align: center; margin-bottom: 20px;">
-            <h1 style="color: #1a1a2e; font-size: 24px;">🏠 HBnB</h1>
+            <h1 style="color: #1a1a2e; font-size: 24px;">Rizi</h1>
         </div>
 
         <h2 style="color: #333; text-align: center;">رابط الدخول السحري</h2>
@@ -94,7 +94,7 @@ def send_magic_link_email(email, magic_url):
         <div style="text-align: center; margin: 30px 0;">
             <a href="{magic_url}"
                style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; font-size: 18px; font-weight: bold; text-decoration: none; border-radius: 12px;">
-                🔑 تسجيل الدخول — Login
+                تسجيل الدخول — Login
             </a>
         </div>
 
@@ -123,15 +123,15 @@ def send_magic_link_email(email, magic_url):
 
 def send_booking_confirmation(email, booking_data):
     """Send booking confirmation receipt"""
-    subject = f"تأكيد الحجز - HBnB | Booking Confirmation"
+    subject = f"تأكيد الحجز - Rizi | Booking Confirmation"
 
     html = f"""
     <div dir="rtl" style="font-family: 'Cairo', Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb;">
         <div style="text-align: center; margin-bottom: 20px;">
-            <h1 style="color: #1a1a2e; font-size: 24px;">🏠 HBnB</h1>
+            <h1 style="color: #1a1a2e; font-size: 24px;">Rizi</h1>
         </div>
 
-        <h2 style="color: #16a34a; text-align: center;">✅ تم تأكيد الحجز</h2>
+        <h2 style="color: #16a34a; text-align: center;">تم تأكيد الحجز</h2>
         <p style="color: #666; text-align: center;">Booking Confirmed</p>
 
         <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; margin: 20px 0;">

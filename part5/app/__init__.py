@@ -44,7 +44,7 @@ def create_app(config_name='development'):
 
     # Create tables
     with app.app_context():
-        from app.models import user, place, booking, payment, review, amenity, media, city, otp
+        from app.models import user, place, booking, payment, review, amenity, media, city, otp, site_settings
         db.create_all()
 
     # JWT error handlers

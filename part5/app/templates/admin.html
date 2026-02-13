@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة — Rizi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<!-- ─── ADMIN SIDEBAR ─── -->
+<aside class="admin-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i data-lucide="shield-check"></i>
+        <span>Rizi Admin</span>
+    </div>
+    <nav class="sidebar-nav">
+        <button class="sidebar-link active" onclick="showSection('dashboard', this)">
+            <i data-lucide="layout-dashboard"></i> <span>لوحة التحكم</span>
+        </button>
+        <button class="sidebar-link" onclick="showSection('users', this)">
+            <i data-lucide="users"></i> <span>المستخدمون</span>
+        </button>
+        <button class="sidebar-link" onclick="showSection('places', this)">
+            <i data-lucide="building-2"></i> <span>العقارات</span>
+        </button>
+        <button class="sidebar-link" onclick="showSection('bookings', this)">
+            <i data-lucide="calendar-check"></i> <span>الحجوزات</span>
+        </button>
+        <button class="sidebar-link" onclick="showSection('reviews', this)">
+            <i data-lucide="star"></i> <span>التقييمات</span>
+        </button>
+        <button class="sidebar-link" onclick="showSection('amenities', this)">
+            <i data-lucide="sparkles"></i> <span>المرافق</span>
+        </button>
+        <button class="sidebar-link" onclick="showSection('cities', this)">
+            <i data-lucide="map-pin"></i> <span>المدن</span>
+        </button>
+        <button class="sidebar-link" onclick="showSection('types', this)">
+            <i data-lucide="layout-grid"></i> <span>أنواع العقارات</span>
+        </button>
+        <button class="sidebar-link" onclick="showSection('settings', this)">
+            <i data-lucide="settings"></i> <span>الإعدادات</span>
+        </button>
+    </nav>
+    <div class="sidebar-footer">
+        <a href="/" class="sidebar-link">
+            <i data-lucide="arrow-right"></i> <span>العودة للموقع</span>
+        </a>
+        <button class="sidebar-link" onclick="logout()">
+            <i data-lucide="log-out"></i> <span>تسجيل الخروج</span>
+        </button>
+    </div>
+</aside>
+
+<!-- ─── MAIN CONTENT ─── -->
+<main class="admin-main" id="adminMain">
+    <!-- Header -->
+    <header class="admin-header">
+        <button class="btn-icon sidebar-toggle" onclick="toggleSidebar()">
+            <i data-lucide="menu"></i>
+        </button>
+        <h1 id="sectionTitle">لوحة التحكم</h1>
+        <div class="admin-header-actions">
+            <button class="btn-icon" onclick="toggleTheme()"><i data-lucide="sun" id="themeIcon"></i></button>
+            <span id="adminName"></span>
+        </div>
+    </header>
+
+    <!-- ═══ DASHBOARD ═══ -->
+    <section class="admin-section active" id="sectionDashboard">
+        <div class="stats-grid">
+            <div class="stat-card"><i data-lucide="users"></i><div><span id="dUsers">0</span><label>المستخدمون</label></div></div>
+            <div class="stat-card"><i data-lucide="building-2"></i><div><span id="dPlaces">0</span><label>العقارات</label></div></div>
+            <div class="stat-card"><i data-lucide="calendar-check"></i><div><span id="dBookings">0</span><label>الحجوزات</label></div></div>
+            <div class="stat-card"><i data-lucide="star"></i><div><span id="dReviews">0</span><label>التقييمات</label></div></div>
+            <div class="stat-card"><i data-lucide="clock"></i><div><span id="dPending">0</span><label>حجوزات معلقة</label></div></div>
+            <div class="stat-card stat-card--accent"><i data-lucide="banknote"></i><div><span id="dRevenue">0</span><label>الإيرادات (ر.س)</label></div></div>
+        </div>
+    </section>
+
+    <!-- ═══ USERS ═══ -->
+    <section class="admin-section" id="sectionUsers">
+        <div class="section-toolbar">
+            <input type="text" class="toolbar-search" placeholder="بحث بالاسم أو البريد..." id="userSearch" oninput="debounce(loadUsers, 400)()">
+            <select class="toolbar-select" id="userRoleFilter" onchange="loadUsers()">
+                <option value="">كل الأدوار</option>
+                <option value="admin">مدير</option>
+                <option value="owner">مالك</option>
+                <option value="guest">ضيف</option>
+            </select>
+            <button class="btn btn--primary" onclick="openModal('userModal')"><i data-lucide="plus"></i> إضافة مستخدم</button>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table" id="usersTable">
+                <thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>الحالة</th><th>تاريخ التسجيل</th><th>إجراءات</th></tr></thead>
+                <tbody id="usersBody"></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="usersPagination"></div>
+    </section>
+
+    <!-- ═══ PLACES ═══ -->
+    <section class="admin-section" id="sectionPlaces">
+        <div class="section-toolbar">
+            <input type="text" class="toolbar-search" placeholder="بحث بالعنوان..." id="placeSearch" oninput="debounce(loadPlaces, 400)()">
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table" id="placesTable">
+                <thead><tr><th>العنوان</th><th>المدينة</th><th>السعر</th><th>النوع</th><th>مميز</th><th>نشط</th><th>إجراءات</th></tr></thead>
+                <tbody id="placesBody"></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="placesPagination"></div>
+    </section>
+
+    <!-- ═══ BOOKINGS ═══ -->
+    <section class="admin-section" id="sectionBookings">
+        <div class="section-toolbar">
+            <select class="toolbar-select" id="bookingStatusFilter" onchange="loadBookings()">
+                <option value="">كل الحالات</option>
+                <option value="pending">معلق</option>
+                <option value="confirmed">مؤكد</option>
+                <option value="checked_in">مسجل دخول</option>
+                <option value="completed">مكتمل</option>
+                <option value="cancelled">ملغي</option>
+            </select>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>الضيف</th><th>العقار</th><th>الوصول</th><th>المغادرة</th><th>الحالة</th><th>المبلغ</th><th>إجراءات</th></tr></thead>
+                <tbody id="bookingsBody"></tbody>
+            </table>
+        </div>
+        <div class="pagination" id="bookingsPagination"></div>
+    </section>
+
+    <!-- ═══ REVIEWS ═══ -->
+    <section class="admin-section" id="sectionReviews">
+        <div class="section-toolbar">
+            <select class="toolbar-select" id="reviewFilter" onchange="loadReviews()">
+                <option value="">الكل</option>
+                <option value="true">معتمدة</option>
+                <option value="false">غير معتمدة</option>
+            </select>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>المستخدم</th><th>العقار</th><th>التقييم</th><th>التعليق</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+                <tbody id="reviewsBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ═══ AMENITIES ═══ -->
+    <section class="admin-section" id="sectionAmenities">
+        <div class="section-toolbar">
+            <button class="btn btn--primary" onclick="openModal('amenityModal')"><i data-lucide="plus"></i> إضافة مرفق</button>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>الاسم (عربي)</th><th>Name (EN)</th><th>الأيقونة</th><th>الفئة</th><th>إجراءات</th></tr></thead>
+                <tbody id="amenitiesBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ═══ CITIES ═══ -->
+    <section class="admin-section" id="sectionCities">
+        <div class="section-toolbar">
+            <button class="btn btn--primary" onclick="openModal('cityModal')"><i data-lucide="plus"></i> إضافة مدينة</button>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>الاسم (عربي)</th><th>Name (EN)</th><th>المنطقة</th><th>مميزة</th><th>إجراءات</th></tr></thead>
+                <tbody id="citiesBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ═══ PROPERTY TYPES ═══ -->
+    <section class="admin-section" id="sectionTypes">
+        <div class="section-toolbar">
+            <button class="btn btn--primary" onclick="openModal('typeModal')"><i data-lucide="plus"></i> إضافة نوع</button>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>الاسم (عربي)</th><th>Name (EN)</th><th>الأيقونة</th><th>الترتيب</th><th>إجراءات</th></tr></thead>
+                <tbody id="typesBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ═══ SETTINGS ═══ -->
+    <section class="admin-section" id="sectionSettings">
+        <div class="settings-grid">
+            <!-- API Keys Card -->
+            <div class="settings-card">
+                <h3><i data-lucide="key"></i> مفاتيح API</h3>
+                <div class="setting-row">
+                    <label>Google Maps API Key</label>
+                    <input type="text" id="settingGoogleMaps" class="form-input" placeholder="AIzaSy...">
+                </div>
+                <div class="setting-row">
+                    <label>Resend API Key</label>
+                    <input type="password" id="settingResend" class="form-input" placeholder="re_...">
+                </div>
+                <div class="setting-row">
+                    <label>Stripe Secret Key</label>
+                    <input type="password" id="settingStripeSecret" class="form-input" placeholder="sk_...">
+                </div>
+                <div class="setting-row">
+                    <label>Stripe Publishable Key</label>
+                    <input type="text" id="settingStripePub" class="form-input" placeholder="pk_...">
+                </div>
+                <button class="btn btn--primary" onclick="saveApiKeys()"><i data-lucide="save"></i> حفظ المفاتيح</button>
+            </div>
+
+            <!-- Booking Rules Card -->
+            <div class="settings-card">
+                <h3><i data-lucide="clock"></i> قواعد الحجز</h3>
+                <div class="setting-row">
+                    <label>وقت تسجيل الدخول</label>
+                    <input type="time" id="settingCheckIn" class="form-input" value="16:00">
+                </div>
+                <div class="setting-row">
+                    <label>وقت تسجيل الخروج</label>
+                    <input type="time" id="settingCheckOut" class="form-input" value="12:00">
+                </div>
+                <div class="setting-row">
+                    <label>ساعات التنظيف بين الضيوف</label>
+                    <input type="number" id="settingCleaning" class="form-input" value="4" min="1" max="12">
+                </div>
+                <button class="btn btn--primary" onclick="saveBookingRules()"><i data-lucide="save"></i> حفظ</button>
+            </div>
+
+            <!-- Custom Settings -->
+            <div class="settings-card settings-card--full">
+                <h3><i data-lucide="sliders-horizontal"></i> إعدادات مخصصة</h3>
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead><tr><th>المفتاح</th><th>القيمة</th><th>الفئة</th><th>الوصف</th><th>إجراءات</th></tr></thead>
+                        <tbody id="settingsBody"></tbody>
+                    </table>
+                </div>
+                <button class="btn btn--outline" onclick="openModal('settingModal')"><i data-lucide="plus"></i> إضافة إعداد</button>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- ═══════════════════ MODALS ═══════════════════ -->
+
+<!-- User Modal -->
+<div class="modal" id="userModal">
+    <div class="modal__backdrop" onclick="closeModal('userModal')"></div>
+    <div class="modal__content">
+        <h2 id="userModalTitle">إضافة مستخدم</h2>
+        <input type="hidden" id="editUserId">
+        <div class="form-grid">
+            <div class="form-group"><label>الاسم الأول</label><input type="text" id="uFirstName" class="form-input"></div>
+            <div class="form-group"><label>اسم العائلة</label><input type="text" id="uLastName" class="form-input"></div>
+            <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="uEmail" class="form-input" required></div>
+            <div class="form-group"><label>الهاتف</label><input type="tel" id="uPhone" class="form-input"></div>
+            <div class="form-group"><label>كلمة المرور</label><input type="password" id="uPassword" class="form-input"></div>
+            <div class="form-group"><label>الدور</label>
+                <select id="uRole" class="form-input">
+                    <option value="guest">ضيف</option>
+                    <option value="owner">مالك</option>
+                    <option value="admin">مدير</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn--outline" onclick="closeModal('userModal')">إلغاء</button>
+            <button class="btn btn--primary" onclick="saveUser()">حفظ</button>
+        </div>
+    </div>
+</div>
+
+<!-- Amenity Modal -->
+<div class="modal" id="amenityModal">
+    <div class="modal__backdrop" onclick="closeModal('amenityModal')"></div>
+    <div class="modal__content">
+        <h2 id="amenityModalTitle">إضافة مرفق</h2>
+        <input type="hidden" id="editAmenityId">
+        <div class="form-grid">
+            <div class="form-group"><label>الاسم (عربي)</label><input type="text" id="aNameAr" class="form-input" required></div>
+            <div class="form-group"><label>Name (English)</label><input type="text" id="aNameEn" class="form-input" required></div>
+            <div class="form-group"><label>أيقونة Lucide</label><input type="text" id="aIcon" class="form-input" placeholder="wifi, car, waves..."></div>
+            <div class="form-group"><label>الفئة</label>
+                <select id="aCategory" class="form-input">
+                    <option value="essentials">أساسيات</option>
+                    <option value="leisure">ترفيه</option>
+                    <option value="outdoor">خارجي</option>
+                    <option value="safety">أمان</option>
+                    <option value="comfort">راحة</option>
+                    <option value="business">أعمال</option>
+                    <option value="accessibility">إمكانية وصول</option>
+                    <option value="entertainment">تسلية</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn--outline" onclick="closeModal('amenityModal')">إلغاء</button>
+            <button class="btn btn--primary" onclick="saveAmenity()">حفظ</button>
+        </div>
+    </div>
+</div>
+
+<!-- City Modal -->
+<div class="modal" id="cityModal">
+    <div class="modal__backdrop" onclick="closeModal('cityModal')"></div>
+    <div class="modal__content">
+        <h2 id="cityModalTitle">إضافة مدينة</h2>
+        <input type="hidden" id="editCityId">
+        <div class="form-grid">
+            <div class="form-group"><label>الاسم (عربي)</label><input type="text" id="cNameAr" class="form-input" required></div>
+            <div class="form-group"><label>Name (English)</label><input type="text" id="cNameEn" class="form-input" required></div>
+            <div class="form-group"><label>المنطقة (عربي)</label><input type="text" id="cRegionAr" class="form-input"></div>
+            <div class="form-group"><label>Region (EN)</label><input type="text" id="cRegionEn" class="form-input"></div>
+            <div class="form-group"><label>خط العرض</label><input type="number" id="cLat" class="form-input" step="any"></div>
+            <div class="form-group"><label>خط الطول</label><input type="number" id="cLng" class="form-input" step="any"></div>
+            <div class="form-group"><label><input type="checkbox" id="cFeatured"> مدينة مميزة</label></div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn--outline" onclick="closeModal('cityModal')">إلغاء</button>
+            <button class="btn btn--primary" onclick="saveCity()">حفظ</button>
+        </div>
+    </div>
+</div>
+
+<!-- Property Type Modal -->
+<div class="modal" id="typeModal">
+    <div class="modal__backdrop" onclick="closeModal('typeModal')"></div>
+    <div class="modal__content">
+        <h2 id="typeModalTitle">إضافة نوع عقار</h2>
+        <input type="hidden" id="editTypeId">
+        <div class="form-grid">
+            <div class="form-group"><label>الاسم (عربي)</label><input type="text" id="tNameAr" class="form-input" required></div>
+            <div class="form-group"><label>Name (English)</label><input type="text" id="tNameEn" class="form-input" required></div>
+            <div class="form-group"><label>أيقونة Lucide</label><input type="text" id="tIcon" class="form-input" placeholder="building-2, home, tent..."></div>
+            <div class="form-group"><label>الترتيب</label><input type="number" id="tOrder" class="form-input" value="0"></div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn--outline" onclick="closeModal('typeModal')">إلغاء</button>
+            <button class="btn btn--primary" onclick="saveType()">حفظ</button>
+        </div>
+    </div>
+</div>
+
+<!-- Setting Modal -->
+<div class="modal" id="settingModal">
+    <div class="modal__backdrop" onclick="closeModal('settingModal')"></div>
+    <div class="modal__content">
+        <h2>إضافة إعداد</h2>
+        <input type="hidden" id="editSettingId">
+        <div class="form-grid">
+            <div class="form-group"><label>المفتاح</label><input type="text" id="sKey" class="form-input" required></div>
+            <div class="form-group"><label>القيمة</label><input type="text" id="sValue" class="form-input"></div>
+            <div class="form-group"><label>الفئة</label>
+                <select id="sCategory" class="form-input">
+                    <option value="general">عام</option>
+                    <option value="api_keys">مفاتيح API</option>
+                    <option value="booking">حجز</option>
+                    <option value="appearance">مظهر</option>
+                </select>
+            </div>
+            <div class="form-group"><label>الوصف</label><input type="text" id="sDesc" class="form-input"></div>
+            <div class="form-group"><label><input type="checkbox" id="sSecret"> قيمة سرية</label></div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn--outline" onclick="closeModal('settingModal')">إلغاء</button>
+            <button class="btn btn--primary" onclick="saveSetting()">حفظ</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container"></div>
+
+<script src="/static/js/config.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/auth.js"></script>
+<script src="/static/js/admin.js"></script>
+<script>lucide.createIcons();</script>
+</body>
+</html>

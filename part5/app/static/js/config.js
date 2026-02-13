@@ -25,18 +25,18 @@ const CONFIG = {
         'tabuk': 'https://images.unsplash.com/photo-1682687982501-1e58ab814714?w=400&h=500&fit=crop',
     },
 
-    // Property type icons
+    // Property type icons (Lucide icon names)
     TYPE_ICONS: {
-        'apartments': '🏢',
-        'chalets': '🏖️',
-        'studios': '🎨',
-        'rest_houses': '🏡',
-        'resorts': '🏨',
-        'villas': '🏛️',
-        'farms': '🌳',
-        'camps': '⛺',
-        'hotels': '🏩',
-        'hostels': '🛏️',
+        'apartments': 'building-2',
+        'chalets': 'house',
+        'studios': 'square',
+        'rest_houses': 'umbrella',
+        'resorts': 'palm-tree',
+        'villas': 'home',
+        'farms': 'wheat',
+        'camps': 'tent',
+        'hotels': 'hotel',
+        'hostels': 'bed',
     },
 };
 
@@ -129,11 +129,12 @@ function showToast(message, type = 'info', duration = 3000) {
         document.body.appendChild(container);
     }
 
-    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    const iconNames = { success: 'check-circle', error: 'alert-circle', info: 'info' };
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<span>${icons[type] || ''}</span><span>${message}</span>`;
+    toast.innerHTML = `<i data-lucide="${iconNames[type] || 'info'}" style="width:18px;height:18px;"></i><span>${message}</span>`;
     container.appendChild(toast);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 
     setTimeout(() => {
         toast.style.opacity = '0';

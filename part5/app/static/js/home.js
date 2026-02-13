@@ -97,25 +97,29 @@ function renderPropertyTypes(types) {
 
     if (!types.length) {
         const defaults = [
-            { name_ar: 'شقق', name_en: 'Apartments', icon: '🏢' },
-            { name_ar: 'شاليهات', name_en: 'Chalets', icon: '🏠' },
-            { name_ar: 'استديوهات', name_en: 'Studios', icon: '🏬' },
-            { name_ar: 'استراحات', name_en: 'Retreats', icon: '⛱️' },
-            { name_ar: 'منتجعات', name_en: 'Resorts', icon: '🏖️' },
-            { name_ar: 'فلل', name_en: 'Villas', icon: '🏡' },
-            { name_ar: 'مزارع', name_en: 'Farms', icon: '🌾' },
-            { name_ar: 'مخيمات', name_en: 'Camps', icon: '⛺' },
+            { name_ar: 'شقق', name_en: 'Apartments', icon: 'building-2' },
+            { name_ar: 'شاليهات', name_en: 'Chalets', icon: 'house' },
+            { name_ar: 'استديوهات', name_en: 'Studios', icon: 'square' },
+            { name_ar: 'استراحات', name_en: 'Retreats', icon: 'umbrella' },
+            { name_ar: 'منتجعات', name_en: 'Resorts', icon: 'palm-tree' },
+            { name_ar: 'فلل', name_en: 'Villas', icon: 'home' },
+            { name_ar: 'مزارع', name_en: 'Farms', icon: 'wheat' },
+            { name_ar: 'مخيمات', name_en: 'Camps', icon: 'tent' },
         ];
         types = defaults;
     }
 
     const lang = getLang();
-    grid.innerHTML = types.map(tp => `
-        <a href="/search?type=${tp.id || ''}" class="type-card">
-            <span class="type-card__icon">${tp.icon || CONFIG.PROPERTY_TYPE_ICONS[tp.name_en?.toLowerCase()] || '🏠'}</span>
-            <span class="type-card__name">${lang === 'ar' ? tp.name_ar : tp.name_en}</span>
-        </a>
-    `).join('');
+    grid.innerHTML = types.map(tp => {
+        const iconName = tp.icon || CONFIG.TYPE_ICONS[tp.name_en?.toLowerCase()] || 'home';
+        return `
+            <a href="/search?type=${tp.id || ''}" class="type-card">
+                <span class="type-card__icon"><i data-lucide="${iconName}"></i></span>
+                <span class="type-card__name">${lang === 'ar' ? tp.name_ar : tp.name_en}</span>
+            </a>
+        `;
+    }).join('');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 /* ─── BUDGET FRIENDLY ─── */
@@ -161,7 +165,7 @@ function createPlaceCard(place, showMonthly = false) {
         <a href="/place/${place.id}" class="place-card">
             <div class="place-card__image">
                 <img src="${image}" alt="${title}" loading="lazy">
-                ${place.is_featured ? '<span class="place-card__badge">⭐ Elite</span>' : ''}
+                ${place.is_featured ? '<span class="place-card__badge"><i data-lucide="crown" style="width:14px;height:14px;display:inline;"></i> Elite</span>' : ''}
                 <button class="place-card__fav" onclick="event.preventDefault();">
                     <i data-lucide="heart"></i>
                 </button>

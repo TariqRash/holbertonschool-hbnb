@@ -18,14 +18,14 @@ class Config:
 
     # Resend Email
     RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
-    RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', 'noreply@hbnb.sa')
+    RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', 'noreply@rizi.app')
 
     # Stripe Payment
     STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
     STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')
 
-    # Google Maps (optional — Leaflet is default)
-    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+    # Google Maps
+    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', 'AIzaSyDKXY_py-Ku0hm_EKZAYV5A86PTpzdNSSY')
 
     # Media Upload
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app', 'static', 'uploads')
@@ -47,6 +47,16 @@ class Config:
     # Monthly discount
     MONTHLY_DISCOUNT_PERCENT = 10
 
+    # Booking rules
+    CHECK_IN_TIME = '16:00'   # 4:00 PM
+    CHECK_OUT_TIME = '12:00'  # 12:00 PM (noon)
+    CLEANING_HOURS = 4        # 4 hours between guests
+
+    # App identity
+    APP_NAME = 'Rizi'
+    APP_URL = os.getenv('APP_URL', 'http://localhost:5000')
+    DOMAIN = os.getenv('DOMAIN', 'rizi.app')
+
 
 class DevelopmentConfig(Config):
     """Development configuration"""
@@ -61,6 +71,12 @@ class ProductionConfig(Config):
     """Production configuration"""
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', '')
+    APP_URL = os.getenv('APP_URL', 'https://rizi.app')
+
+    # Tighter security in production
+    JWT_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
 
 
 class TestingConfig(Config):

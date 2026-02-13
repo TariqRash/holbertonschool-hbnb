@@ -209,7 +209,7 @@ def create_place():
 
     data = request.get_json()
     required = ['title_ar', 'title_en', 'price_per_night', 'city_id',
-                 'property_type_id', 'latitude', 'longitude']
+                 'property_type_id']
 
     for field in required:
         if field not in data:
@@ -223,8 +223,8 @@ def create_place():
         price_per_night=data['price_per_night'],
         city_id=data['city_id'],
         property_type_id=data['property_type_id'],
-        latitude=data['latitude'],
-        longitude=data['longitude'],
+        latitude=data.get('latitude', 0.0),
+        longitude=data.get('longitude', 0.0),
         owner_id=user_id,
         max_guests=data.get('max_guests', 4),
         bedrooms=data.get('bedrooms', 1),
@@ -237,8 +237,8 @@ def create_place():
         floor_number=data.get('floor_number'),
         door_description_en=data.get('door_description_en'),
         door_description_ar=data.get('door_description_ar'),
-        check_in_time=data.get('check_in_time', '15:00'),
-        check_out_time=data.get('check_out_time', '11:00'),
+        check_in_time=data.get('check_in_time', '16:00'),
+        check_out_time=data.get('check_out_time', '12:00'),
         rules_en=data.get('rules_en'),
         rules_ar=data.get('rules_ar'),
     )

@@ -1,15 +1,33 @@
 """
 HBnB V2 — Booking API
 Full booking flow: check availability → create → pay → confirm.
+Booking rules: check-out 12:00 PM, check-in 4:00 PM, 4-hour cleaning window.
 """
-from flask import request, jsonify
+from flask import request, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.api.v1 import api_v1
 from app import db
 from app.models.booking import Booking
 from app.models.place import Place
 from app.models.user import User
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+
+
+def _check_cleaning_window(place_id, check_in_date, check_out_date):
+    """
+    Enforce cleaning window between bookings.
+    Check-out is at 12:00 PM, cleaning takes 4 hours, check-in at 4:00 PM.
+    This means same-day turnover is allowed (check-out 12 PM → clean → check-in 4 PM),
+    but no overlapping dates.
+    """
+    # Standard overlap check (confirmed/checked_in bookings)
+    conflict = Booking.query.filter(
+        Booking.place_id == place_id,
+        Booking.status.in_(['confirmed', 'checked_in']),
+        Booking.check_in < check_out_date,
+        Booking.check_out > check_in_date,
+    ).first()
+    return conflict
 
 
 # ─── Check Availability ─────────────────────────────────────
@@ -38,13 +56,8 @@ def check_availability():
 
     place = Place.query.get_or_404(place_id)
 
-    # Check for overlapping confirmed bookings
-    conflict = Booking.query.filter(
-        Booking.place_id == place_id,
-        Booking.status.in_(['confirmed', 'checked_in']),
-        Booking.check_in < check_out_date,
-        Booking.check_out > check_in_date,
-    ).first()
+    # Check for overlapping bookings with cleaning window
+    conflict = _check_cleaning_window(place_id, check_in_date, check_out_date)
 
     nights = (check_out_date - check_in_date).days
     subtotal = place.price_per_night * nights
@@ -63,6 +76,8 @@ def check_availability():
         'place_id': place_id,
         'check_in': check_in,
         'check_out': check_out,
+        'check_in_time': place.check_in_time or '16:00',
+        'check_out_time': place.check_out_time or '12:00',
         'nights': nights,
         'price_per_night': place.price_per_night,
         'subtotal': subtotal,
@@ -104,13 +119,8 @@ def create_booking():
     except ValueError:
         return jsonify({'error': 'Invalid date format'}), 400
 
-    # Check availability
-    conflict = Booking.query.filter(
-        Booking.place_id == place_id,
-        Booking.status.in_(['confirmed', 'checked_in']),
-        Booking.check_in < check_out_date,
-        Booking.check_out > check_in_date,
-    ).first()
+    # Check availability with cleaning window
+    conflict = _check_cleaning_window(place_id, check_in_date, check_out_date)
 
     if conflict:
         return jsonify({

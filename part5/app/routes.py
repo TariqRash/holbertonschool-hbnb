@@ -59,6 +59,12 @@ def search_page():
     return render_template('search.html', lang=lang)
 
 
+@frontend.route('/admin')
+def admin_page():
+    lang = request.args.get('lang', 'ar')
+    return render_template('admin.html', lang=lang)
+
+
 # Serve uploads
 @frontend.route('/static/uploads/<filename>')
 def uploaded_file(filename):

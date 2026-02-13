@@ -55,8 +55,8 @@ class Place(BaseModel):
     # Location
     city_id = db.Column(db.String(36), db.ForeignKey('cities.id'), nullable=False, index=True)
     address = db.Column(db.String(500), nullable=True)  # Only shown post-booking
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
+    latitude = db.Column(db.Float, nullable=True, default=0.0)
+    longitude = db.Column(db.Float, nullable=True, default=0.0)
 
     # Property Details
     property_type_id = db.Column(db.String(36), db.ForeignKey('property_types.id'), nullable=False, index=True)
@@ -84,8 +84,8 @@ class Place(BaseModel):
     door_description_ar = db.Column(db.String(200), nullable=True)
 
     # Check-in/out
-    check_in_time = db.Column(db.String(10), default='15:00')
-    check_out_time = db.Column(db.String(10), default='11:00')
+    check_in_time = db.Column(db.String(10), default='16:00')
+    check_out_time = db.Column(db.String(10), default='12:00')
 
     # House Rules
     rules_en = db.Column(db.Text, nullable=True)

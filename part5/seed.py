@@ -13,36 +13,45 @@ from app.models.amenity import Amenity
 def seed():
     app = create_app()
     with app.app_context():
-        print("🌱 Seeding database...")
+        print("Seeding database...")
 
-        # ── Admin user ──
-        admin = User.query.filter_by(email='admin@hbnb.sa').first()
-        if not admin:
-            admin = User(
-                first_name='Admin',
-                last_name='HBnB',
-                email='admin@hbnb.sa',
-                role='admin',
-                is_active=True
-            )
-            admin.set_password('admin123')
-            db.session.add(admin)
-            print("  ✅ Admin user created")
+        # ── Admin users ──
+        admins_data = [
+            {'first_name': 'Tariq', 'last_name': 'Rasheed', 'email': 'tariq@ib.com.sa', 'password': '112233Ta'},
+            {'first_name': 'Shaden', 'last_name': 'Admin', 'email': 'shaden@ib.com.sa', 'password': '112233Sh'},
+            {'first_name': 'Norah', 'last_name': 'Admin', 'email': 'Norah@ib.com.sa', 'password': '112233Na'},
+        ]
+
+        for ad in admins_data:
+            existing = User.query.filter_by(email=ad['email']).first()
+            if not existing:
+                user = User(
+                    first_name=ad['first_name'],
+                    last_name=ad['last_name'],
+                    email=ad['email'],
+                    role='admin',
+                    is_active=True,
+                    is_verified=True,
+                )
+                user.set_password(ad['password'])
+                db.session.add(user)
+                print(f"  Admin user created: {ad['email']}")
 
         # ── Owner user ──
-        owner = User.query.filter_by(email='owner@hbnb.sa').first()
+        owner = User.query.filter_by(email='owner@rizi.app').first()
         if not owner:
             owner = User(
                 first_name='طارق',
                 last_name='المطيري',
-                email='owner@hbnb.sa',
+                email='owner@rizi.app',
                 role='owner',
                 is_active=True,
+                is_verified=True,
                 preferred_language='ar'
             )
             owner.set_password('owner123')
             db.session.add(owner)
-            print("  ✅ Owner user created")
+            print("  Owner user created")
 
         db.session.flush()
 
@@ -69,18 +78,18 @@ def seed():
             cities[cd['name_en']] = c
 
         db.session.flush()
-        print(f"  ✅ {len(cities)} cities seeded")
+        print(f"  {len(cities)} cities seeded")
 
         # ── Property Types ──
         types_data = [
-            {'name_en': 'Apartments', 'name_ar': 'شقق', 'icon': '🏢', 'sort_order': 1},
-            {'name_en': 'Chalets', 'name_ar': 'شاليهات', 'icon': '🏠', 'sort_order': 2},
-            {'name_en': 'Studios', 'name_ar': 'استديوهات', 'icon': '🏬', 'sort_order': 3},
-            {'name_en': 'Retreats', 'name_ar': 'استراحات', 'icon': '⛱️', 'sort_order': 4},
-            {'name_en': 'Resorts', 'name_ar': 'منتجعات', 'icon': '🏖️', 'sort_order': 5},
-            {'name_en': 'Villas', 'name_ar': 'فلل', 'icon': '🏡', 'sort_order': 6},
-            {'name_en': 'Farms', 'name_ar': 'مزارع', 'icon': '🌾', 'sort_order': 7},
-            {'name_en': 'Camps', 'name_ar': 'مخيمات', 'icon': '⛺', 'sort_order': 8},
+            {'name_en': 'Apartments', 'name_ar': 'شقق', 'icon': 'building-2', 'sort_order': 1},
+            {'name_en': 'Chalets', 'name_ar': 'شاليهات', 'icon': 'house', 'sort_order': 2},
+            {'name_en': 'Studios', 'name_ar': 'استديوهات', 'icon': 'square', 'sort_order': 3},
+            {'name_en': 'Retreats', 'name_ar': 'استراحات', 'icon': 'umbrella', 'sort_order': 4},
+            {'name_en': 'Resorts', 'name_ar': 'منتجعات', 'icon': 'palm-tree', 'sort_order': 5},
+            {'name_en': 'Villas', 'name_ar': 'فلل', 'icon': 'home', 'sort_order': 6},
+            {'name_en': 'Farms', 'name_ar': 'مزارع', 'icon': 'wheat', 'sort_order': 7},
+            {'name_en': 'Camps', 'name_ar': 'مخيمات', 'icon': 'tent', 'sort_order': 8},
         ]
 
         prop_types = {}
@@ -92,7 +101,7 @@ def seed():
             prop_types[td['name_en']] = pt
 
         db.session.flush()
-        print(f"  ✅ {len(prop_types)} property types seeded")
+        print(f"  {len(prop_types)} property types seeded")
 
         # ── Amenities ──
         amenities_data = [
@@ -122,7 +131,7 @@ def seed():
             amenities[ad['name_en']] = a
 
         db.session.flush()
-        print(f"  ✅ {len(amenities)} amenities seeded")
+        print(f"  {len(amenities)} amenities seeded")
 
         # ── Sample Places ──
         places_data = [
@@ -273,8 +282,8 @@ def seed():
                     place.amenities.append(amenities[amenity_name])
 
         db.session.commit()
-        print(f"  ✅ {len(places_data)} sample places seeded")
-        print("✅ Database seeding complete!")
+        print(f"  {len(places_data)} sample places seeded")
+        print("Database seeding complete!")
 
 
 if __name__ == '__main__':
