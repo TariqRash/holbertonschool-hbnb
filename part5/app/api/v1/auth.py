@@ -250,13 +250,14 @@ def login():
 # ─── Owner Registration ─────────────────────────────────────
 @api_v1.route('/auth/register/owner', methods=['POST'])
 def register_owner():
-    """Register as property owner"""
+    """Register as property owner — auto-login with JWT"""
     data = request.get_json()
 
-    required = ['first_name', 'last_name', 'email', 'phone']
+    required = ['first_name', 'last_name', 'email', 'phone', 'password']
     for field in required:
         if not data.get(field):
-            return jsonify({'error': f'{field} is required'}), 400
+            return jsonify({'error': f'{field} is required',
+                           'error_ar': 'جميع الحقول مطلوبة'}), 400
 
     email = data['email'].strip().lower()
     if User.query.filter_by(email=email).first():
@@ -268,31 +269,27 @@ def register_owner():
         email=email,
         phone=data.get('phone'),
         role='owner',
+        is_verified=True,
         preferred_language=data.get('language', 'ar')
     )
-
-    if data.get('password'):
-        user.set_password(data['password'])
+    user.set_password(data['password'])
 
     db.session.add(user)
     db.session.commit()
 
-    # Send verification OTP
-    code = OTP.generate_otp()
-    otp = OTP(
-        email=email,
-        code=code,
-        token_type='otp',
-        expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
+    # Auto-login — return JWT tokens immediately
+    access_token = create_access_token(
+        identity=user.id,
+        additional_claims={'role': user.role, 'email': user.email}
     )
-    db.session.add(otp)
-    db.session.commit()
-    send_otp_email(email, code)
+    refresh_token = create_refresh_token(identity=user.id)
 
     return jsonify({
-        'message': 'Owner registered. Check email for verification.',
-        'message_ar': 'تم التسجيل. تحقق من بريدك الإلكتروني.',
-        'user_id': user.id
+        'message': 'Owner registered successfully',
+        'message_ar': 'تم تسجيل المالك بنجاح',
+        'access_token': access_token,
+        'refresh_token': refresh_token,
+        'user': user.to_dict(include_private=True)
     }), 201
 
 

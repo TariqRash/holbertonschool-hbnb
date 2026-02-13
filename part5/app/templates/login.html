@@ -85,6 +85,39 @@
                 <i data-lucide="building-2"></i> تسجيل
             </a>
         </div>
+
+        <!-- Step: Owner Registration -->
+        <div id="stepOwner" class="login-step">
+            <h2 style="text-align:center;margin-bottom:0.5rem;"><i data-lucide="building-2" style="width:24px;height:24px;display:inline;"></i> تسجيل مالك عقار</h2>
+            <p style="text-align:center;color:var(--text-muted);margin-bottom:1.5rem;font-size:0.9rem;">أنشئ حسابك وأضف عقارك مباشرة</p>
+
+            <div class="form-group">
+                <label>الاسم الأول *</label>
+                <input type="text" id="ownerFirstName" class="form-input" placeholder="مثال: أحمد" required>
+            </div>
+            <div class="form-group">
+                <label>اسم العائلة *</label>
+                <input type="text" id="ownerLastName" class="form-input" placeholder="مثال: القحطاني" required>
+            </div>
+            <div class="form-group">
+                <label>البريد الإلكتروني *</label>
+                <input type="email" id="ownerEmail" class="form-input" placeholder="example@email.com" dir="ltr" required>
+            </div>
+            <div class="form-group">
+                <label>رقم الجوال *</label>
+                <input type="tel" id="ownerPhone" class="form-input" placeholder="05XXXXXXXX" dir="ltr" required>
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور *</label>
+                <input type="password" id="ownerPassword" class="form-input" placeholder="••••••••" required>
+            </div>
+
+            <button class="btn btn--primary btn--block" id="ownerRegBtn" onclick="registerOwner()">
+                <i data-lucide="user-plus"></i> إنشاء الحساب
+            </button>
+            <p id="ownerRegError" style="display:none;color:var(--danger);text-align:center;margin-top:0.75rem;"></p>
+            <button class="btn btn--text" onclick="goBackToEmail()" style="margin-top:0.5rem;">← رجوع لتسجيل الدخول</button>
+        </div>
     </div>
 </main>
 
@@ -145,8 +178,61 @@
     }
 
     function showOwnerForm() {
-        // For now redirect — can be expanded to inline form
-        showToast('سيتم إضافة تسجيل المالك قريباً', 'info');
+        showStep('stepOwner');
+        document.getElementById('ownerFirstName')?.focus();
+    }
+
+    async function registerOwner() {
+        const firstName = document.getElementById('ownerFirstName').value.trim();
+        const lastName = document.getElementById('ownerLastName').value.trim();
+        const email = document.getElementById('ownerEmail').value.trim();
+        const phone = document.getElementById('ownerPhone').value.trim();
+        const password = document.getElementById('ownerPassword').value;
+        const errorEl = document.getElementById('ownerRegError');
+        errorEl.style.display = 'none';
+
+        if (!firstName || !lastName || !email || !phone || !password) {
+            errorEl.textContent = 'جميع الحقول مطلوبة';
+            errorEl.style.display = 'block';
+            return;
+        }
+        if (password.length < 6) {
+            errorEl.textContent = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+            errorEl.style.display = 'block';
+            return;
+        }
+
+        const btn = document.getElementById('ownerRegBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> جاري التسجيل...';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        try {
+            const res = await Auth.registerOwner({
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                phone: phone,
+                password: password
+            });
+
+            if (res.access_token) {
+                showToast('تم التسجيل بنجاح! جاري التوجيه لإضافة عقارك...', 'success');
+                setTimeout(() => window.location.href = '/owner', 1000);
+            } else {
+                errorEl.textContent = res.error_ar || res.error || 'حدث خطأ';
+                errorEl.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="user-plus"></i> إنشاء الحساب';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        } catch (e) {
+            errorEl.textContent = e.error_ar || e.error || 'حدث خطأ أثناء التسجيل';
+            errorEl.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="user-plus"></i> إنشاء الحساب';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
     }
 
     // OTP input auto-advance

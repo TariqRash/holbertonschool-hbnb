@@ -15,10 +15,7 @@ bcrypt==4.2.1
 PyJWT==2.10.1
 
 # Email (Resend)
-resend==2.5.0
-
-# Payment (Stripe)
-stripe==11.4.1
+resend==2.5.1
 
 # Maps & Geocoding
 geopy==2.4.1

@@ -51,7 +51,7 @@ const api = {
         });
 
         const headers = {};
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('hbnb_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const res = await fetch(url, { headers });
@@ -61,7 +61,7 @@ const api = {
 
     async post(endpoint, data = {}) {
         const headers = { 'Content-Type': 'application/json' };
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('hbnb_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const res = await fetch(CONFIG.API_URL + endpoint, {
@@ -76,7 +76,7 @@ const api = {
 
     async put(endpoint, data = {}) {
         const headers = { 'Content-Type': 'application/json' };
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('hbnb_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const res = await fetch(CONFIG.API_URL + endpoint, {
@@ -91,7 +91,7 @@ const api = {
 
     async delete(endpoint) {
         const headers = {};
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('hbnb_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const res = await fetch(CONFIG.API_URL + endpoint, {
@@ -104,7 +104,7 @@ const api = {
 
     async upload(endpoint, formData) {
         const headers = {};
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('hbnb_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         const res = await fetch(CONFIG.API_URL + endpoint, {

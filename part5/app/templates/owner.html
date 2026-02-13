@@ -127,6 +127,10 @@
                     <select name="city_id" class="form-input" id="formCity" required></select>
                 </div>
                 <div class="form-group">
+                    <label>نوع العقار</label>
+                    <select name="property_type_id" class="form-input" id="formPropertyType" required></select>
+                </div>
+                <div class="form-group">
                     <label>غرف النوم</label>
                     <input type="number" name="bedrooms" class="form-input" min="0" value="1">
                 </div>
@@ -192,7 +196,7 @@
 
         list.innerHTML = data.map(p => `
             <div class="property-item">
-                <img src="${p.cover_image || CONFIG.PLACEHOLDER_IMAGES.riyadh}" alt="">
+                <img src="${p.image_url || CONFIG.PLACEHOLDER_IMAGE}" alt="">
                 <div class="property-item__info">
                     <h3>${isAr ? (p.title_ar || p.title_en) : (p.title_en || p.title_ar)}</h3>
                     <p>${formatPrice(p.price_per_night)} ${t('per_night')}</p>
@@ -240,11 +244,20 @@
     }
 
     async function loadCityOptions() {
+        const isAr = getLang() === 'ar';
+
+        // Cities
         const cities = await api.get('/cities');
         const select = document.getElementById('formCity');
-        const isAr = getLang() === 'ar';
         if (cities?.length) {
             select.innerHTML = cities.map(c => `<option value="${c.id}">${isAr ? c.name_ar : c.name_en}</option>`).join('');
+        }
+
+        // Property Types
+        const types = await api.get('/property-types');
+        const typeSelect = document.getElementById('formPropertyType');
+        if (types?.length) {
+            typeSelect.innerHTML = types.map(t => `<option value="${t.id}">${isAr ? t.name_ar : t.name_en}</option>`).join('');
         }
     }
 

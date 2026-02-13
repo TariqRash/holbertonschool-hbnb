@@ -103,9 +103,36 @@
 
                         <!-- Payment button (for pending bookings) -->
                         <div id="paymentActions">
-                            <button class="btn btn--primary btn--block" onclick="initiatePayment()" id="payBtn">
-                                <i data-lucide="credit-card"></i> ادفع الآن
+                            <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:12px;text-align:center;">اختر طريقة الدفع</p>
+                            <button class="btn btn--primary btn--block" onclick="choosePayment('bank_transfer')" id="payBankBtn">
+                                <i data-lucide="landmark"></i> تحويل بنكي
                             </button>
+                            <button class="btn btn--outline btn--block" onclick="choosePayment('mada_transfer')" style="margin-top:8px;">
+                                <i data-lucide="credit-card"></i> تحويل مدى
+                            </button>
+                            <button class="btn btn--outline btn--block" onclick="choosePayment('cash_on_arrival')" style="margin-top:8px;">
+                                <i data-lucide="banknote"></i> الدفع عند الوصول
+                            </button>
+                        </div>
+
+                        <!-- Bank info (shown after choosing transfer) -->
+                        <div id="bankInfoSection" style="display:none;margin-top:16px;padding:14px;border-radius:12px;background:var(--bg-tertiary);border:1px solid var(--border);">
+                            <h4 style="margin-bottom:8px;"><i data-lucide="info"></i> معلومات التحويل</h4>
+                            <p id="bankInfoContent" style="font-size:0.85rem;line-height:1.8;"></p>
+                            <div style="margin-top:12px;">
+                                <input type="text" id="transferRef" class="form-input" placeholder="رقم مرجع التحويل" style="margin-bottom:8px;">
+                                <input type="text" id="senderBank" class="form-input" placeholder="اسم البنك المرسل">
+                            </div>
+                            <button class="btn btn--primary btn--block" onclick="submitPayment()" style="margin-top:12px;">
+                                <i data-lucide="check-circle"></i> تأكيد إرسال التحويل
+                            </button>
+                        </div>
+
+                        <!-- Payment status (shown after submission) -->
+                        <div id="paymentStatus" style="display:none;margin-top:16px;padding:14px;border-radius:12px;background:var(--bg-tertiary);text-align:center;">
+                            <i data-lucide="clock" style="width:32px;height:32px;color:var(--warning);"></i>
+                            <p style="margin-top:8px;font-weight:600;">في انتظار تأكيد الإدارة</p>
+                            <p style="font-size:0.85rem;color:var(--text-secondary);">سيتم تأكيد حجزك بعد التحقق من الدفع</p>
                         </div>
 
                         <!-- Cancel (for pending/confirmed) -->
@@ -187,13 +214,19 @@
 
         // Show/hide actions
         if (data.status === 'pending') {
-            document.getElementById('payBtn').style.display = 'flex';
+            document.getElementById('paymentActions').style.display = 'block';
             document.getElementById('cancelBtn').style.display = 'flex';
         } else if (data.status === 'confirmed') {
-            document.getElementById('payBtn').style.display = 'none';
+            document.getElementById('paymentActions').style.display = 'none';
             document.getElementById('cancelBtn').style.display = 'flex';
         } else {
             document.getElementById('paymentActions').style.display = 'none';
+        }
+
+        // Show payment status if awaiting confirmation
+        if (data.payment && data.payment.status === 'awaiting_confirmation') {
+            document.getElementById('paymentActions').style.display = 'none';
+            document.getElementById('paymentStatus').style.display = 'block';
         }
 
         // Access instructions (confirmed/checked_in)
@@ -208,17 +241,51 @@
         lucide.createIcons();
     }
 
-    async function initiatePayment() {
-        const res = await api.post('/payments/create-intent', { booking_id: bookingId });
+    let selectedMethod = null;
+
+    async function choosePayment(method) {
+        selectedMethod = method;
+
+        if (method === 'cash_on_arrival') {
+            // Direct — no bank info needed
+            if (!confirm('هل تريد اختيار الدفع عند الوصول؟')) return;
+            await submitPayment();
+            return;
+        }
+
+        // Show bank info for transfers
+        const methods = await api.get('/payments/methods');
+        const m = methods.find(x => x.id === method);
+        if (m && m.bank_info) {
+            document.getElementById('bankInfoContent').innerHTML = `
+                <strong>البنك:</strong> ${m.bank_info.bank_name}<br>
+                <strong>IBAN:</strong> <code dir="ltr">${m.bank_info.iban}</code><br>
+                <strong>صاحب الحساب:</strong> ${m.bank_info.account_holder}
+            `;
+        }
+        document.getElementById('paymentActions').style.display = 'none';
+        document.getElementById('bankInfoSection').style.display = 'block';
+        lucide.createIcons();
+    }
+
+    async function submitPayment() {
+        const payload = {
+            booking_id: bookingId,
+            payment_method: selectedMethod,
+            transfer_reference: document.getElementById('transferRef')?.value || '',
+            bank_name: document.getElementById('senderBank')?.value || '',
+        };
+
+        const res = await api.post('/payments', payload);
         if (res.error) return showToast(res.error, 'error');
 
-        if (res.demo_mode) {
-            showToast('تم الدفع بنجاح (وضع تجريبي)', 'success');
-            setTimeout(() => loadBooking(), 1000);
-        } else if (res.client_secret) {
-            // Real Stripe — would open Stripe Elements here
-            showToast('جاري توجيهك للدفع...', 'info');
-        }
+        showToast(res.message || 'تم تسجيل الدفع بنجاح', 'success');
+        document.getElementById('bankInfoSection').style.display = 'none';
+        document.getElementById('paymentActions').style.display = 'none';
+        document.getElementById('paymentStatus').style.display = 'block';
+        lucide.createIcons();
+
+        setTimeout(() => loadBooking(), 1500);
     }
 
     async function cancelBooking() {

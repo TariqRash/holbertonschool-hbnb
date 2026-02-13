@@ -5,12 +5,23 @@
 
 /* ─── Initialization ─── */
 document.addEventListener('DOMContentLoaded', () => {
-    if (!Auth.isLoggedIn()) return window.location.href = '/login';
+    if (!Auth.isLoggedIn()) {
+        // Show inline admin login form instead of redirecting
+        document.getElementById('adminLoginOverlay').style.display = 'flex';
+        document.getElementById('sidebar').style.display = 'none';
+        document.getElementById('adminMain').style.display = 'none';
+        document.getElementById('adminEmail')?.focus();
+        return;
+    }
 
     const user = Auth.getUser();
     if (!user || user.role !== 'admin') {
         showToast('صلاحية المدير مطلوبة', 'error');
-        return window.location.href = '/';
+        document.getElementById('adminLoginOverlay').style.display = 'flex';
+        document.getElementById('sidebar').style.display = 'none';
+        document.getElementById('adminMain').style.display = 'none';
+        Auth.clear();
+        return;
     }
 
     document.getElementById('adminName').textContent = user.first_name || user.email;
@@ -599,14 +610,15 @@ async function loadSettings() {
 
         if (keysMap['google_maps_api_key']) document.getElementById('settingGoogleMaps').value = keysMap['google_maps_api_key'].value || '';
         if (keysMap['resend_api_key']) document.getElementById('settingResend').value = keysMap['resend_api_key'].value || '';
-        if (keysMap['stripe_secret_key']) document.getElementById('settingStripeSecret').value = keysMap['stripe_secret_key'].value || '';
-        if (keysMap['stripe_publishable_key']) document.getElementById('settingStripePub').value = keysMap['stripe_publishable_key'].value || '';
+        if (keysMap['bank_name']) document.getElementById('settingBankName').value = keysMap['bank_name'].value || '';
+        if (keysMap['bank_iban']) document.getElementById('settingBankIban').value = keysMap['bank_iban'].value || '';
+        if (keysMap['account_holder']) document.getElementById('settingAccountHolder').value = keysMap['account_holder'].value || '';
         if (keysMap['check_in_time']) document.getElementById('settingCheckIn').value = keysMap['check_in_time'].value || '16:00';
         if (keysMap['check_out_time']) document.getElementById('settingCheckOut').value = keysMap['check_out_time'].value || '12:00';
         if (keysMap['cleaning_hours']) document.getElementById('settingCleaning').value = keysMap['cleaning_hours'].value || '4';
 
         // Render custom settings table
-        const custom = (data || []).filter(s => !['google_maps_api_key', 'resend_api_key', 'stripe_secret_key', 'stripe_publishable_key', 'check_in_time', 'check_out_time', 'cleaning_hours'].includes(s.key));
+        const custom = (data || []).filter(s => !['google_maps_api_key', 'resend_api_key', 'bank_name', 'bank_iban', 'account_holder', 'check_in_time', 'check_out_time', 'cleaning_hours'].includes(s.key));
         tbody.innerHTML = custom.map(s => `
             <tr>
                 <td><code>${s.key}</code></td>
@@ -631,8 +643,9 @@ async function saveApiKeys() {
     const keys = [
         { key: 'google_maps_api_key', value: document.getElementById('settingGoogleMaps').value, category: 'api_keys', description_en: 'Google Maps API Key', is_secret: false },
         { key: 'resend_api_key', value: document.getElementById('settingResend').value, category: 'api_keys', description_en: 'Resend Email API Key', is_secret: true },
-        { key: 'stripe_secret_key', value: document.getElementById('settingStripeSecret').value, category: 'api_keys', description_en: 'Stripe Secret Key', is_secret: true },
-        { key: 'stripe_publishable_key', value: document.getElementById('settingStripePub').value, category: 'api_keys', description_en: 'Stripe Publishable Key', is_secret: false },
+        { key: 'bank_name', value: document.getElementById('settingBankName').value, category: 'payment', description_en: 'Bank Name', is_secret: false },
+        { key: 'bank_iban', value: document.getElementById('settingBankIban').value, category: 'payment', description_en: 'Bank IBAN', is_secret: false },
+        { key: 'account_holder', value: document.getElementById('settingAccountHolder').value, category: 'payment', description_en: 'Account Holder', is_secret: false },
     ];
 
     try {
@@ -702,4 +715,10 @@ function renderPagination(containerId, totalPages, currentPage, loadFn) {
         html += `<button class="${i === currentPage ? 'active' : ''}" onclick="${loadFn.name}(${i})">${i}</button>`;
     }
     container.innerHTML = html;
+}
+
+/* ─── Logout ─── */
+function logout() {
+    Auth.clear();
+    window.location.reload();
 }

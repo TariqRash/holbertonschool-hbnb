@@ -210,12 +210,16 @@
                     <input type="password" id="settingResend" class="form-input" placeholder="re_...">
                 </div>
                 <div class="setting-row">
-                    <label>Stripe Secret Key</label>
-                    <input type="password" id="settingStripeSecret" class="form-input" placeholder="sk_...">
+                    <label>اسم البنك / Bank Name</label>
+                    <input type="text" id="settingBankName" class="form-input" placeholder="الراجحي — Al Rajhi Bank" value="الراجحي — Al Rajhi Bank">
                 </div>
                 <div class="setting-row">
-                    <label>Stripe Publishable Key</label>
-                    <input type="text" id="settingStripePub" class="form-input" placeholder="pk_...">
+                    <label>IBAN</label>
+                    <input type="text" id="settingBankIban" class="form-input" placeholder="SA03 8000 0000 6080 1016 7519" dir="ltr">
+                </div>
+                <div class="setting-row">
+                    <label>صاحب الحساب / Account Holder</label>
+                    <input type="text" id="settingAccountHolder" class="form-input" placeholder="Rizi Platform">
                 </div>
                 <button class="btn btn--primary" onclick="saveApiKeys()"><i data-lucide="save"></i> حفظ المفاتيح</button>
             </div>
@@ -383,10 +387,96 @@
 <!-- Toast Container -->
 <div class="toast-container"></div>
 
+<!-- ═══ ADMIN LOGIN OVERLAY ═══ -->
+<div id="adminLoginOverlay" class="admin-login-overlay" style="display:none">
+    <div class="admin-login-card">
+        <div class="admin-login-card__header">
+            <i data-lucide="shield-check" style="width:48px;height:48px;color:var(--primary);"></i>
+            <h1>لوحة الإدارة</h1>
+            <p>سجّل دخولك بالبريد وكلمة المرور</p>
+        </div>
+        <div class="form-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="adminEmail" class="form-input" placeholder="admin@rizi.app" dir="ltr">
+        </div>
+        <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="adminPassword" class="form-input" placeholder="••••••••">
+        </div>
+        <button class="btn btn--primary btn--block" id="adminLoginBtn" onclick="adminLogin()">
+            <i data-lucide="log-in"></i> تسجيل الدخول
+        </button>
+        <p id="adminLoginError" class="text-danger" style="display:none;margin-top:0.75rem;text-align:center;color:var(--danger);"></p>
+        <a href="/" class="btn btn--text" style="margin-top:1rem;display:block;text-align:center;">← العودة للموقع</a>
+    </div>
+</div>
+
+<style>
+.admin-login-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:var(--bg-primary);padding:1rem;}
+.admin-login-card{background:var(--bg-card);border:1px solid var(--border);border-radius:1rem;padding:2.5rem;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.1);}
+.admin-login-card__header{text-align:center;margin-bottom:2rem;}
+.admin-login-card__header h1{margin:0.75rem 0 0.25rem;font-size:1.5rem;font-family:'Cairo',sans-serif;}
+.admin-login-card__header p{color:var(--text-muted);font-size:0.9rem;}
+.admin-login-card .form-group{margin-bottom:1rem;}
+.admin-login-card .form-group label{display:block;margin-bottom:0.4rem;font-weight:600;font-size:0.85rem;}
+.text-danger{color:var(--danger);}
+</style>
+
 <script src="/static/js/config.js"></script>
 <script src="/static/js/i18n.js"></script>
 <script src="/static/js/auth.js"></script>
 <script src="/static/js/admin.js"></script>
-<script>lucide.createIcons();</script>
+<script>
+async function adminLogin() {
+    const email = document.getElementById('adminEmail').value.trim();
+    const password = document.getElementById('adminPassword').value;
+    const errorEl = document.getElementById('adminLoginError');
+    errorEl.style.display = 'none';
+
+    if (!email || !password) {
+        errorEl.textContent = 'البريد وكلمة المرور مطلوبان';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    const btn = document.getElementById('adminLoginBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> جاري الدخول...';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+
+    try {
+        const res = await Auth.login(email, password);
+        if (res.access_token) {
+            const user = Auth.getUser();
+            if (!user || user.role !== 'admin') {
+                Auth.clear();
+                errorEl.textContent = 'هذا الحساب ليس لديه صلاحية المدير';
+                errorEl.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="log-in"></i> تسجيل الدخول';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                return;
+            }
+            window.location.reload();
+        }
+    } catch (e) {
+        errorEl.textContent = e.error_ar || e.error || 'بيانات الدخول غير صحيحة';
+        errorEl.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="log-in"></i> تسجيل الدخول';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+}
+
+// Handle Enter key on login form
+document.getElementById('adminPassword')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') adminLogin();
+});
+document.getElementById('adminEmail')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('adminPassword').focus();
+});
+
+lucide.createIcons();
+</script>
 </body>
 </html>

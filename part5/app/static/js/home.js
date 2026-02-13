@@ -254,6 +254,79 @@ function initSearchBox() {
     if (ci) ci.min = today;
     if (co) co.min = today;
     if (ci) ci.addEventListener('change', () => { if (co) co.min = ci.value; });
+
+    // City autocomplete
+    initCityAutocomplete();
+}
+
+/* ─── CITY AUTOCOMPLETE ─── */
+let acDebounce = null;
+
+function initCityAutocomplete() {
+    const input = document.getElementById('searchCityInput');
+    const dropdown = document.getElementById('cityAutocomplete');
+    const hidden = document.getElementById('searchCity');
+    if (!input || !dropdown) return;
+
+    input.addEventListener('input', () => {
+        clearTimeout(acDebounce);
+        const q = input.value.trim();
+        if (q.length < 2) {
+            dropdown.style.display = 'none';
+            hidden.value = '';
+            return;
+        }
+        acDebounce = setTimeout(() => searchCityAutocomplete(q), 300);
+    });
+
+    input.addEventListener('focus', () => {
+        if (input.value.trim().length >= 2) {
+            dropdown.style.display = 'block';
+        }
+    });
+
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.search-field')) {
+            dropdown.style.display = 'none';
+        }
+    });
+}
+
+async function searchCityAutocomplete(q) {
+    const dropdown = document.getElementById('cityAutocomplete');
+    const hidden = document.getElementById('searchCity');
+    const lang = getLang();
+
+    try {
+        const results = await api.get(`/cities/search?q=${encodeURIComponent(q)}&lang=${lang}`);
+
+        if (!results || !results.length) {
+            dropdown.innerHTML = '<div class="ac-empty">لا توجد نتائج</div>';
+            dropdown.style.display = 'block';
+            return;
+        }
+
+        dropdown.innerHTML = results.map(c => `
+            <div class="ac-item" data-id="${c.id || ''}" data-name="${c.name || c.description || ''}">
+                <i data-lucide="map-pin"></i>
+                <span>${c.name || c.description || ''}</span>
+            </div>
+        `).join('');
+
+        dropdown.querySelectorAll('.ac-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const input = document.getElementById('searchCityInput');
+                input.value = item.dataset.name;
+                hidden.value = item.dataset.id;
+                dropdown.style.display = 'none';
+            });
+        });
+
+        dropdown.style.display = 'block';
+        lucide.createIcons();
+    } catch (e) {
+        dropdown.style.display = 'none';
+    }
 }
 
 /* ─── QUICK FILTERS ─── */

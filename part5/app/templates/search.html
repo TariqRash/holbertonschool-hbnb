@@ -216,14 +216,18 @@
 
         if (city) params.set('city_id', city);
         if (type) params.set('property_type_id', type);
-        if (priceMin) params.set('price_min', priceMin);
-        if (priceMax) params.set('price_max', priceMax);
+        if (priceMin) params.set('min_price', priceMin);
+        if (priceMax) params.set('max_price', priceMax);
         if (checkIn) params.set('check_in', checkIn);
         if (checkOut) params.set('check_out', checkOut);
-        if (guests) params.set('max_guests', guests);
+        if (guests) params.set('guests', guests);
         if (currentTrip) params.set('trip_type', currentTrip);
-        if (sort) params.set('sort', sort);
-        if (search) params.set('search', search);
+        if (sort) {
+            // Map frontend sort values to API sort values
+            const sortMap = { price_asc: 'price_low', price_desc: 'price_high', rating: 'rating', newest: 'newest' };
+            params.set('sort', sortMap[sort] || sort);
+        }
+        if (search) params.set('q', search);
         params.set('page', currentPage);
         params.set('lang', getLang());
 
@@ -252,9 +256,9 @@
 
     function createSearchCard(p) {
         const lang = getLang();
-        const title = lang === 'ar' ? (p.title_ar || p.title_en) : (p.title_en || p.title_ar);
-        const city = lang === 'ar' ? (p.city_name_ar || '') : (p.city_name_en || '');
-        const image = p.cover_image || p.image_url || CONFIG.PLACEHOLDER_IMAGES.riyadh;
+        const title = lang === 'ar' ? (p.title_ar || p.title_en || p.title) : (p.title_en || p.title_ar || p.title);
+        const city = p.city ? (lang === 'ar' ? (p.city.name_ar || p.city.name_en || '') : (p.city.name_en || p.city.name_ar || '')) : '';
+        const image = p.image_url || p.cover_image || CONFIG.PLACEHOLDER_IMAGE;
         const rating = p.average_rating ? p.average_rating.toFixed(1) : '—';
 
         return `

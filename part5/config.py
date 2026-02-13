@@ -20,9 +20,10 @@ class Config:
     RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
     RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', 'noreply@rizi.app')
 
-    # Stripe Payment
-    STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
-    STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')
+    # Offline Payment — Bank Details
+    BANK_NAME = os.getenv('BANK_NAME', 'الراجحي — Al Rajhi Bank')
+    BANK_IBAN = os.getenv('BANK_IBAN', 'SA00 8000 0000 0000 12346 7519')
+    ACCOUNT_HOLDER = os.getenv('ACCOUNT_HOLDER', 'Rizi Platform')
 
     # Google Maps
     GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', 'AIzaSyDKXY_py-Ku0hm_EKZAYV5A86PTpzdNSSY')

@@ -87,11 +87,11 @@
         <!-- Search Box -->
         <div class="hero-search" id="heroSearch">
             <div class="search-box">
-                <div class="search-field">
+                <div class="search-field" style="position:relative;">
                     <label><i data-lucide="map-pin" class="icon-sm"></i> <span data-t="cities">المدينة</span></label>
-                    <select id="searchCity" class="search-select">
-                        <option value="">كل المدن</option>
-                    </select>
+                    <input type="text" id="searchCityInput" class="search-input" placeholder="ابحث عن مدينة..." autocomplete="off">
+                    <input type="hidden" id="searchCity">
+                    <div id="cityAutocomplete" class="autocomplete-dropdown" style="display:none;"></div>
                 </div>
                 <div class="search-divider"></div>
                 <div class="search-field">
