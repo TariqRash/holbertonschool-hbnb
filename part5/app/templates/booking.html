@@ -14,7 +14,7 @@
 
 <nav class="nav">
     <div class="container nav__inner">
-        <a href="/" class="nav__logo">Rizi</a>
+        <a href="/" class="nav__logo"><img src="/static/images/logo.png" alt="Rizi" class="nav__logo-img"> Rizi</a>
         <div class="nav__actions">
             <button class="btn btn--icon" onclick="toggleLanguage()"><span id="langLabel">EN</span></button>
             <button class="btn btn--icon" onclick="toggleTheme()"><i data-lucide="sun"></i></button>
@@ -188,7 +188,7 @@
 
         // Place info
         document.getElementById('bookingPlace').innerHTML = `
-            <img src="${data.place?.cover_image || CONFIG.PLACEHOLDER_IMAGES.riyadh}" alt="">
+            <img src="${data.place?.cover_image || CONFIG.PLACEHOLDER_IMAGE}" alt="">
             <div>
                 <h3>${isAr ? (data.place?.title_ar || data.place?.title_en || '') : (data.place?.title_en || '')}</h3>
                 <p>${isAr ? (data.place?.city_name_ar || '') : (data.place?.city_name_en || '')}</p>

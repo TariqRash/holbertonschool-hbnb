@@ -41,12 +41,12 @@ function debounce(fn, delay) {
 const sectionTitles = {
     dashboard: 'لوحة التحكم',
     users: 'المستخدمون',
-    places: 'العقارات',
+    places: 'الوحدات السكنية',
     bookings: 'الحجوزات',
     reviews: 'التقييمات',
     amenities: 'المرافق',
     cities: 'المدن',
-    types: 'أنواع العقارات',
+    types: 'أنواع الوحدات',
     settings: 'الإعدادات',
 };
 
@@ -84,12 +84,23 @@ function toggleSidebar() {
 
 /* ─── Modal Helpers ─── */
 function openModal(id) {
-    document.getElementById(id)?.classList.add('show');
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.add('show');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
 }
 
 function closeModal(id) {
     document.getElementById(id)?.classList.remove('show');
 }
+
+// Close modals on ESC
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
+    }
+});
 
 /* ─── Theme Toggle ─── */
 function toggleTheme() {
@@ -237,8 +248,9 @@ async function loadPlaces(page = 1) {
                 <td>${p.is_active !== false ? '<span class="badge badge--active">نشط</span>' : '<span class="badge badge--inactive">معطل</span>'}</td>
                 <td>
                     <div class="action-btns">
-                        <button class="action-btn action-btn--edit" onclick="togglePlaceFeatured('${p.id}', ${!p.is_featured})"><i data-lucide="${p.is_featured ? 'star-off' : 'star'}"></i></button>
-                        <button class="action-btn action-btn--delete" onclick="deletePlace('${p.id}')"><i data-lucide="trash-2"></i></button>
+                        <button class="action-btn action-btn--edit" title="تعديل" onclick="editPlace('${p.id}')"><i data-lucide="pencil"></i></button>
+                        <button class="action-btn action-btn--edit" onclick="togglePlaceFeatured('${p.id}', ${!p.is_featured})" title="${p.is_featured ? 'إلغاء التمييز' : 'تمييز'}"><i data-lucide="${p.is_featured ? 'star-off' : 'star'}"></i></button>
+                        <button class="action-btn action-btn--delete" onclick="deletePlace('${p.id}')" title="تعطيل"><i data-lucide="trash-2"></i></button>
                     </div>
                 </td>
             </tr>
@@ -269,6 +281,101 @@ async function deletePlace(id) {
         loadPlaces(placesPage);
     } catch (e) {
         showToast('حدث خطأ', 'error');
+    }
+}
+
+let placeDropdownsLoaded = false;
+
+async function loadPlaceDropdowns() {
+    if (placeDropdownsLoaded) return;
+    try {
+        const [cities, types] = await Promise.all([
+            api.get('/cities'),
+            api.get('/property-types')
+        ]);
+        const citySelect = document.getElementById('pCityId');
+        const typeSelect = document.getElementById('pTypeId');
+        citySelect.innerHTML = '<option value="">اختر المدينة</option>' +
+            (cities || []).map(c => `<option value="${c.id}">${c.name_ar || c.name_en}</option>`).join('');
+        typeSelect.innerHTML = '<option value="">اختر النوع</option>' +
+            (types || []).map(t => `<option value="${t.id}">${t.name_ar || t.name_en}</option>`).join('');
+        placeDropdownsLoaded = true;
+    } catch (e) {
+        console.error('Failed to load place dropdowns:', e);
+    }
+}
+
+async function editPlace(id) {
+    await loadPlaceDropdowns();
+    try {
+        const p = await api.get(`/admin/places/${id}`);
+        if (!p) return showToast('عقار غير موجود', 'error');
+
+        document.getElementById('editPlaceId').value = p.id;
+        document.getElementById('placeModalTitle').textContent = 'تعديل العقار';
+        document.getElementById('pTitleAr').value = p.title_ar || '';
+        document.getElementById('pTitleEn').value = p.title_en || '';
+        document.getElementById('pDescAr').value = p.description_ar || p.description || '';
+        document.getElementById('pDescEn').value = p.description_en || (p.description && getLang() === 'en' ? p.description : '') || '';
+        document.getElementById('pPrice').value = p.price_per_night || '';
+        document.getElementById('pMonthlyDiscount').value = p.monthly_discount || '';
+        document.getElementById('pCityId').value = p.city_id || (p.city?.id) || '';
+        document.getElementById('pTypeId').value = p.property_type_id || (p.property_type?.id) || '';
+        document.getElementById('pBedrooms').value = p.bedrooms ?? '';
+        document.getElementById('pBathrooms').value = p.bathrooms ?? '';
+        document.getElementById('pBeds').value = p.beds ?? '';
+        document.getElementById('pMaxGuests').value = p.max_guests ?? '';
+        document.getElementById('pTripType').value = p.trip_type || 'both';
+        document.getElementById('pAddress').value = p.address || '';
+        document.getElementById('pLatitude').value = p.latitude ?? '';
+        document.getElementById('pLongitude').value = p.longitude ?? '';
+        document.getElementById('pCheckInTime').value = p.check_in_time || '';
+        document.getElementById('pCheckOutTime').value = p.check_out_time || '';
+        document.getElementById('pIsActive').checked = p.is_active !== false;
+        document.getElementById('pIsFeatured').checked = !!p.is_featured;
+        document.getElementById('pInstantBook').checked = !!(p.instant_book || p.is_instant_book);
+
+        openModal('placeModal');
+    } catch (e) {
+        showToast('فشل تحميل بيانات العقار', 'error');
+    }
+}
+
+async function savePlace() {
+    const id = document.getElementById('editPlaceId').value;
+    if (!id) return showToast('لا يوجد عقار للتعديل', 'error');
+
+    const data = {
+        title_ar: document.getElementById('pTitleAr').value,
+        title_en: document.getElementById('pTitleEn').value,
+        description_ar: document.getElementById('pDescAr').value,
+        description_en: document.getElementById('pDescEn').value,
+        price_per_night: parseFloat(document.getElementById('pPrice').value) || 0,
+        monthly_discount: parseInt(document.getElementById('pMonthlyDiscount').value) || 0,
+        city_id: document.getElementById('pCityId').value || null,
+        property_type_id: document.getElementById('pTypeId').value || null,
+        bedrooms: parseInt(document.getElementById('pBedrooms').value) || 0,
+        bathrooms: parseInt(document.getElementById('pBathrooms').value) || 0,
+        beds: parseInt(document.getElementById('pBeds').value) || 0,
+        max_guests: parseInt(document.getElementById('pMaxGuests').value) || 1,
+        trip_type: document.getElementById('pTripType').value,
+        address: document.getElementById('pAddress').value,
+        latitude: parseFloat(document.getElementById('pLatitude').value) || null,
+        longitude: parseFloat(document.getElementById('pLongitude').value) || null,
+        check_in_time: document.getElementById('pCheckInTime').value || null,
+        check_out_time: document.getElementById('pCheckOutTime').value || null,
+        is_active: document.getElementById('pIsActive').checked,
+        is_featured: document.getElementById('pIsFeatured').checked,
+        instant_book: document.getElementById('pInstantBook').checked,
+    };
+
+    try {
+        await api.put(`/admin/places/${id}`, data);
+        showToast('تم تحديث العقار بنجاح', 'success');
+        closeModal('placeModal');
+        loadPlaces(placesPage);
+    } catch (e) {
+        showToast(e.error || 'فشل تحديث العقار', 'error');
     }
 }
 

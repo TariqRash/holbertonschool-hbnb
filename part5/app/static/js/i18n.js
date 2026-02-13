@@ -21,7 +21,7 @@ const TRANSLATIONS = {
         business_trip: 'رحلة عمل',
         family_trip: 'رحلة عائلية',
         monthly_stays: 'إقامة شهرية',
-        property_types: 'أنواع العقارات',
+        property_types: 'أنواع الوحدات السكنية',
         budget_friendly: 'أسعار مناسبة',
         less_than_average: 'أقل من متوسط الأسعار',
         per_night: 'لليلة',

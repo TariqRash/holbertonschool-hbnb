@@ -15,7 +15,7 @@
 <!-- ─── ADMIN SIDEBAR ─── -->
 <aside class="admin-sidebar" id="sidebar">
     <div class="sidebar-brand">
-        <i data-lucide="shield-check"></i>
+        <img src="/static/images/logo.png" alt="Rizi" style="width:28px;height:28px;object-fit:contain;filter:brightness(0) saturate(100%) invert(38%) sepia(60%) saturate(2000%) hue-rotate(230deg) brightness(95%) contrast(95%);">
         <span>Rizi Admin</span>
     </div>
     <nav class="sidebar-nav">
@@ -26,7 +26,7 @@
             <i data-lucide="users"></i> <span>المستخدمون</span>
         </button>
         <button class="sidebar-link" onclick="showSection('places', this)">
-            <i data-lucide="building-2"></i> <span>العقارات</span>
+            <i data-lucide="building-2"></i> <span>الوحدات السكنية</span>
         </button>
         <button class="sidebar-link" onclick="showSection('bookings', this)">
             <i data-lucide="calendar-check"></i> <span>الحجوزات</span>
@@ -41,7 +41,7 @@
             <i data-lucide="map-pin"></i> <span>المدن</span>
         </button>
         <button class="sidebar-link" onclick="showSection('types', this)">
-            <i data-lucide="layout-grid"></i> <span>أنواع العقارات</span>
+            <i data-lucide="layout-grid"></i> <span>أنواع الوحدات</span>
         </button>
         <button class="sidebar-link" onclick="showSection('settings', this)">
             <i data-lucide="settings"></i> <span>الإعدادات</span>
@@ -75,7 +75,7 @@
     <section class="admin-section active" id="sectionDashboard">
         <div class="stats-grid">
             <div class="stat-card"><i data-lucide="users"></i><div><span id="dUsers">0</span><label>المستخدمون</label></div></div>
-            <div class="stat-card"><i data-lucide="building-2"></i><div><span id="dPlaces">0</span><label>العقارات</label></div></div>
+            <div class="stat-card"><i data-lucide="building-2"></i><div><span id="dPlaces">0</span><label>الوحدات السكنية</label></div></div>
             <div class="stat-card"><i data-lucide="calendar-check"></i><div><span id="dBookings">0</span><label>الحجوزات</label></div></div>
             <div class="stat-card"><i data-lucide="star"></i><div><span id="dReviews">0</span><label>التقييمات</label></div></div>
             <div class="stat-card"><i data-lucide="clock"></i><div><span id="dPending">0</span><label>حجوزات معلقة</label></div></div>
@@ -108,6 +108,12 @@
     <section class="admin-section" id="sectionPlaces">
         <div class="section-toolbar">
             <input type="text" class="toolbar-search" placeholder="بحث بالعنوان..." id="placeSearch" oninput="debounce(loadPlaces, 400)()">
+            <select class="toolbar-select" id="placeStatusFilter" onchange="loadPlaces()">
+                <option value="">كل الحالات</option>
+                <option value="active">نشط</option>
+                <option value="inactive">معطل</option>
+                <option value="featured">مميز</option>
+            </select>
         </div>
         <div class="admin-table-wrap">
             <table class="admin-table" id="placesTable">
@@ -384,6 +390,48 @@
     </div>
 </div>
 
+<!-- Place Edit Modal -->
+<div class="modal" id="placeModal">
+    <div class="modal__backdrop" onclick="closeModal('placeModal')"></div>
+    <div class="modal__content" style="max-width:700px;">
+        <h2 id="placeModalTitle">تعديل العقار</h2>
+        <input type="hidden" id="editPlaceId">
+        <div class="form-grid">
+            <div class="form-group"><label>العنوان (عربي)</label><input type="text" id="pTitleAr" class="form-input"></div>
+            <div class="form-group"><label>Title (English)</label><input type="text" id="pTitleEn" class="form-input"></div>
+            <div class="form-group form-group--full"><label>الوصف (عربي)</label><textarea id="pDescAr" class="form-input" rows="3"></textarea></div>
+            <div class="form-group form-group--full"><label>Description (English)</label><textarea id="pDescEn" class="form-input" rows="3"></textarea></div>
+            <div class="form-group"><label>السعر لليلة (ر.س)</label><input type="number" id="pPrice" class="form-input" min="0" step="any"></div>
+            <div class="form-group"><label>خصم شهري %</label><input type="number" id="pMonthlyDiscount" class="form-input" min="0" max="100"></div>
+            <div class="form-group"><label>المدينة</label><select id="pCityId" class="form-input"></select></div>
+            <div class="form-group"><label>نوع العقار</label><select id="pTypeId" class="form-input"></select></div>
+            <div class="form-group"><label>غرف النوم</label><input type="number" id="pBedrooms" class="form-input" min="0"></div>
+            <div class="form-group"><label>الحمامات</label><input type="number" id="pBathrooms" class="form-input" min="0"></div>
+            <div class="form-group"><label>الأسرّة</label><input type="number" id="pBeds" class="form-input" min="0"></div>
+            <div class="form-group"><label>الحد الأقصى للضيوف</label><input type="number" id="pMaxGuests" class="form-input" min="1"></div>
+            <div class="form-group"><label>نوع الرحلة</label>
+                <select id="pTripType" class="form-input">
+                    <option value="both">الكل</option>
+                    <option value="business">عمل</option>
+                    <option value="family">عائلية</option>
+                </select>
+            </div>
+            <div class="form-group"><label>العنوان الفعلي</label><input type="text" id="pAddress" class="form-input"></div>
+            <div class="form-group"><label>خط العرض</label><input type="number" id="pLatitude" class="form-input" step="any"></div>
+            <div class="form-group"><label>خط الطول</label><input type="number" id="pLongitude" class="form-input" step="any"></div>
+            <div class="form-group"><label>وقت الدخول</label><input type="time" id="pCheckInTime" class="form-input"></div>
+            <div class="form-group"><label>وقت المغادرة</label><input type="time" id="pCheckOutTime" class="form-input"></div>
+            <div class="form-group"><label><input type="checkbox" id="pIsActive"> نشط</label></div>
+            <div class="form-group"><label><input type="checkbox" id="pIsFeatured"> مميز (Elite)</label></div>
+            <div class="form-group"><label><input type="checkbox" id="pInstantBook"> حجز فوري</label></div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn--outline" onclick="closeModal('placeModal')">إلغاء</button>
+            <button class="btn btn--primary" onclick="savePlace()"><i data-lucide="save"></i> حفظ</button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast Container -->
 <div class="toast-container"></div>
 
@@ -391,7 +439,7 @@
 <div id="adminLoginOverlay" class="admin-login-overlay" style="display:none">
     <div class="admin-login-card">
         <div class="admin-login-card__header">
-            <i data-lucide="shield-check" style="width:48px;height:48px;color:var(--primary);"></i>
+            <img src="/static/images/logo.png" alt="Rizi" style="width:56px;height:56px;object-fit:contain;filter:brightness(0) saturate(100%) invert(38%) sepia(60%) saturate(2000%) hue-rotate(230deg) brightness(95%) contrast(95%);margin:0 auto;display:block;">
             <h1>لوحة الإدارة</h1>
             <p>سجّل دخولك بالبريد وكلمة المرور</p>
         </div>

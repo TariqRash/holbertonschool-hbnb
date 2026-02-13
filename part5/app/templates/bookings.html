@@ -14,7 +14,7 @@
 
 <nav class="nav">
     <div class="container nav__inner">
-        <a href="/" class="nav__logo">Rizi</a>
+        <a href="/" class="nav__logo"><img src="/static/images/logo.png" alt="Rizi" class="nav__logo-img"> Rizi</a>
         <div class="nav__actions">
             <button class="btn btn--icon" onclick="toggleLanguage()"><span id="langLabel">EN</span></button>
             <button class="btn btn--icon" onclick="toggleTheme()"><i data-lucide="sun"></i></button>
@@ -85,7 +85,7 @@
 
         list.innerHTML = bookings.map(b => `
             <a href="/booking/${b.id}" class="booking-item">
-                <img src="${b.place?.cover_image || CONFIG.PLACEHOLDER_IMAGES.riyadh}" alt="" class="booking-item__img">
+                <img src="${b.place?.cover_image || CONFIG.PLACEHOLDER_IMAGE}" alt="" class="booking-item__img">
                 <div class="booking-item__info">
                     <h3>${isAr ? (b.place?.title_ar || b.place?.title_en || '') : (b.place?.title_en || '')}</h3>
                     <p>${isAr ? (b.place?.city_name_ar || '') : (b.place?.city_name_en || '')}</p>

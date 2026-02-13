@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rizi — منصة حجز العقارات</title>
+    <title>Rizi — منصة حجز الوحدات السكنية</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +12,9 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Leaflet Maps (Free!) -->
+    <!-- Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDKXY_py-Ku0hm_EKZAYV5A86PTpzdNSSY&libraries=places&language=ar"></script>
+    <!-- Leaflet (OSM fallback) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -26,7 +28,7 @@
 <nav class="navbar" id="navbar">
     <div class="nav-container">
         <a href="/" class="logo">
-            <span class="logo-icon"><i data-lucide="home" class="icon-md"></i></span>
+            <img src="/static/images/logo.png" alt="Rizi" class="logo-img">
             <span class="logo-text">Rizi</span>
         </a>
 
@@ -142,7 +144,7 @@
                 <i data-lucide="map" class="icon-md"></i>
                 <span data-t="cities">المدن</span>
             </h2>
-            <p class="section-subtitle">اختر مدينتك واكتشف أفضل العقارات</p>
+            <p class="section-subtitle">اختر مدينتك واكتشف أفضل الوحدات السكنية</p>
         </div>
         <div class="cities-grid" id="citiesGrid">
             <!-- Dynamic city cards -->
@@ -212,7 +214,7 @@
         <div class="section-header">
             <h2 class="section-title">
                 <i data-lucide="layout-grid" class="icon-md"></i>
-                <span data-t="property_types">أنواع العقارات</span>
+                <span data-t="property_types">أنواع الوحدات السكنية</span>
             </h2>
         </div>
         <div class="types-grid" id="typesGrid">
@@ -249,7 +251,7 @@
             </h2>
         </div>
         <div class="map-container">
-            <div id="map" style="height: 450px; border-radius: 16px;"></div>
+            <div id="homeMap" style="height: 450px; border-radius: 16px;"></div>
         </div>
     </div>
 </section>
@@ -259,8 +261,8 @@
     <div class="container">
         <div class="footer-grid">
             <div class="footer-brand">
-                <h3><i data-lucide="home" style="width:20px;height:20px;display:inline;vertical-align:middle;"></i> Rizi</h3>
-                <p>منصة حجز العقارات — اكتشف إقامتك المثالية في المملكة العربية السعودية</p>
+                <h3><img src="/static/images/logo.png" alt="Rizi" style="width:24px;height:24px;display:inline;vertical-align:middle;filter:brightness(0) saturate(100%) invert(38%) sepia(60%) saturate(2000%) hue-rotate(230deg) brightness(95%) contrast(95%);"> Rizi</h3>
+                <p>منصة حجز الوحدات السكنية — اكتشف إقامتك المثالية في المملكة العربية السعودية</p>
             </div>
             <div class="footer-links">
                 <h4>روابط سريعة</h4>

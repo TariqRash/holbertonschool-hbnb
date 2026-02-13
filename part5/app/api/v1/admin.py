@@ -176,6 +176,21 @@ def admin_list_places():
     }), 200
 
 
+@api_v1.route('/admin/places/<place_id>', methods=['GET'])
+@admin_required
+def admin_get_place(place_id):
+    """Get full place details for admin editing"""
+    place = Place.query.get_or_404(place_id)
+    data = place.to_dict('ar', include_private=True)
+    # Add admin-only fields
+    data['description_ar'] = place.description_ar
+    data['description_en'] = place.description_en
+    data['monthly_discount'] = place.monthly_discount
+    data['is_active'] = place.is_active
+    data['instant_book'] = place.is_instant_book
+    return jsonify(data), 200
+
+
 @api_v1.route('/admin/places/<place_id>', methods=['PUT'])
 @admin_required
 def admin_update_place(place_id):
@@ -186,12 +201,16 @@ def admin_update_place(place_id):
     fields = ['title_ar', 'title_en', 'description_ar', 'description_en',
               'price_per_night', 'monthly_discount', 'city_id', 'property_type_id',
               'bedrooms', 'bathrooms', 'max_guests', 'beds',
-              'is_active', 'is_featured', 'instant_book', 'trip_type',
+              'is_active', 'is_featured', 'trip_type',
               'latitude', 'longitude', 'address', 'check_in_time', 'check_out_time']
 
     for field in fields:
         if field in data:
             setattr(place, field, data[field])
+
+    # Handle instant_book alias -> is_instant_book column
+    if 'instant_book' in data:
+        place.is_instant_book = data['instant_book']
 
     db.session.commit()
     return jsonify({'message': 'Place updated', 'place': place.to_dict()}), 200

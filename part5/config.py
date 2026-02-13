@@ -17,8 +17,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Resend Email
-    RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
-    RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', 'noreply@rizi.app')
+    RESEND_API_KEY = os.getenv('RESEND_API_KEY', 're_RocPnXPz_KvD2cKxPhinaRNTP69JuxnaC')
+    RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', 'Rizi <noreply@notifications.rizi.app>')
 
     # Offline Payment — Bank Details
     BANK_NAME = os.getenv('BANK_NAME', 'الراجحي — Al Rajhi Bank')

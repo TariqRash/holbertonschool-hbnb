@@ -8,6 +8,10 @@ const CONFIG = {
     CURRENCY: 'SAR',
     PRIVACY_RADIUS: 500,  // miles
 
+    // Google Maps
+    GOOGLE_MAPS_API_KEY: 'AIzaSyDKXY_py-Ku0hm_EKZAYV5A86PTpzdNSSY',
+    MAP_PROVIDER: 'google', // 'google' or 'osm'
+
     // Map defaults (Saudi Arabia center)
     MAP_CENTER: [24.7136, 46.6753],  // Riyadh
     MAP_ZOOM: 6,
@@ -23,6 +27,10 @@ const CONFIG = {
         'abha': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop',
         'taif': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=500&fit=crop',
         'tabuk': 'https://images.unsplash.com/photo-1682687982501-1e58ab814714?w=400&h=500&fit=crop',
+    },
+    // Alias for backward compatibility (used in home.js, place.html, booking templates)
+    get PLACEHOLDER_IMAGES() {
+        return this.CITY_IMAGES;
     },
 
     // Property type icons (Lucide icon names)
@@ -41,9 +49,53 @@ const CONFIG = {
 };
 
 /**
- * API Helper
+ * API Helper — with retry, error handling, loading indicators
  */
 const api = {
+    _retries: 1,
+    _timeout: 15000,
+
+    async _fetch(url, options = {}, retries = api._retries) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), api._timeout);
+        options.signal = controller.signal;
+
+        for (let attempt = 0; attempt <= retries; attempt++) {
+            try {
+                const res = await fetch(url, options);
+                clearTimeout(timer);
+
+                if (res.status === 401) {
+                    // Token expired — clear and redirect
+                    localStorage.removeItem('hbnb_token');
+                    localStorage.removeItem('hbnb_user');
+                    if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/admin')) {
+                        window.location.href = '/login';
+                    }
+                    throw { status: 401, error: 'انتهت صلاحية الجلسة' };
+                }
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw { status: res.status, ...errData };
+                }
+
+                return await res.json();
+            } catch (e) {
+                clearTimeout(timer);
+                if (e.name === 'AbortError') {
+                    if (attempt < retries) continue;
+                    throw { error: 'انتهت مهلة الاتصال' };
+                }
+                if (attempt < retries && (!e.status || e.status >= 500)) {
+                    await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+                    continue;
+                }
+                throw e;
+            }
+        }
+    },
+
     async get(endpoint, params = {}) {
         const url = new URL(CONFIG.API_URL + endpoint);
         Object.entries(params).forEach(([k, v]) => {
@@ -54,9 +106,7 @@ const api = {
         const token = localStorage.getItem('hbnb_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const res = await fetch(url, { headers });
-        if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
-        return res.json();
+        return api._fetch(url.toString(), { headers });
     },
 
     async post(endpoint, data = {}) {
@@ -64,14 +114,11 @@ const api = {
         const token = localStorage.getItem('hbnb_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const res = await fetch(CONFIG.API_URL + endpoint, {
+        return api._fetch(CONFIG.API_URL + endpoint, {
             method: 'POST',
             headers,
             body: JSON.stringify(data),
         });
-        const json = await res.json();
-        if (!res.ok) throw { status: res.status, ...json };
-        return json;
     },
 
     async put(endpoint, data = {}) {
@@ -79,14 +126,11 @@ const api = {
         const token = localStorage.getItem('hbnb_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const res = await fetch(CONFIG.API_URL + endpoint, {
+        return api._fetch(CONFIG.API_URL + endpoint, {
             method: 'PUT',
             headers,
             body: JSON.stringify(data),
         });
-        const json = await res.json();
-        if (!res.ok) throw { status: res.status, ...json };
-        return json;
     },
 
     async delete(endpoint) {
@@ -94,12 +138,10 @@ const api = {
         const token = localStorage.getItem('hbnb_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const res = await fetch(CONFIG.API_URL + endpoint, {
+        return api._fetch(CONFIG.API_URL + endpoint, {
             method: 'DELETE',
             headers,
         });
-        if (!res.ok) throw new Error(`API ${res.status}`);
-        return res.json();
     },
 
     async upload(endpoint, formData) {
@@ -107,14 +149,11 @@ const api = {
         const token = localStorage.getItem('hbnb_token');
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        const res = await fetch(CONFIG.API_URL + endpoint, {
+        return api._fetch(CONFIG.API_URL + endpoint, {
             method: 'POST',
             headers,
             body: formData,
-        });
-        const json = await res.json();
-        if (!res.ok) throw { status: res.status, ...json };
-        return json;
+        }, 0); // no retry for uploads
     },
 };
 
@@ -200,4 +239,25 @@ function formatPrice(amount, currency = 'SAR') {
  */
 function getLang() {
     return localStorage.getItem('lang') || CONFIG.DEFAULT_LANG;
+}
+
+/**
+ * Global image error handler — fallback to placeholder
+ */
+document.addEventListener('error', e => {
+    if (e.target.tagName === 'IMG' && !e.target.dataset.fallback) {
+        e.target.dataset.fallback = '1';
+        e.target.src = CONFIG.PLACEHOLDER_IMAGE;
+    }
+}, true);
+
+/**
+ * Debounce utility
+ */
+function debounce(fn, delay) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
 }

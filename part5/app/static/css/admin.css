@@ -371,6 +371,23 @@ body {
     animation: modalIn 0.2s ease;
 }
 
+.modal__content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal__content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal__content::-webkit-scrollbar-thumb {
+    background: var(--border, #e5e7eb);
+    border-radius: 3px;
+}
+
+.modal__content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary, #94A3B8);
+}
+
 @keyframes modalIn {
     from { opacity: 0; transform: scale(0.95) translateY(10px); }
     to { opacity: 1; transform: scale(1) translateY(0); }

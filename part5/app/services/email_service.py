@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def _send_email(to, subject, html):
     """Send an email using Resend SDK"""
     api_key = current_app.config.get('RESEND_API_KEY')
-    from_email = current_app.config.get('RESEND_FROM_EMAIL', 'noreply@rizi.app')
+    from_email = current_app.config.get('RESEND_FROM_EMAIL', 'Rizi <noreply@notifications.rizi.app>')
 
     if not api_key:
         logger.warning(f"[EMAIL DEMO] To: {to} | Subject: {subject}")
@@ -39,6 +39,7 @@ def _send_email(to, subject, html):
 
     except Exception as e:
         logger.error(f"Failed to send email to {to}: {e}")
+        print(f"\n⚠️ Email send failed to {to}: {e}")
         return False
 
 

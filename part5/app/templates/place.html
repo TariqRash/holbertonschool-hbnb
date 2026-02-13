@@ -10,13 +10,14 @@
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/place.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDKXY_py-Ku0hm_EKZAYV5A86PTpzdNSSY&language=ar"></script>
 </head>
 <body>
 
 <!-- ─── NAVBAR ─── -->
 <nav class="nav">
     <div class="container nav__inner">
-        <a href="/" class="nav__logo">Rizi</a>
+        <a href="/" class="nav__logo"><img src="/static/images/logo.png" alt="Rizi" class="nav__logo-img"> Rizi</a>
         <div class="nav__actions">
             <button class="btn btn--icon" onclick="toggleLanguage()"><span id="langLabel">EN</span></button>
             <button class="btn btn--icon" onclick="toggleTheme()"><i data-lucide="sun"></i></button>
@@ -285,7 +286,7 @@
     function renderGallery(media) {
         const gallery = document.getElementById('placeGallery');
         if (!media.length) {
-            gallery.innerHTML = `<img src="${CONFIG.PLACEHOLDER_IMAGES.riyadh}" alt="Property" class="gallery-main">`;
+            gallery.innerHTML = `<img src="${CONFIG.PLACEHOLDER_IMAGE}" alt="Property" class="gallery-main">`;
             return;
         }
         const cover = media.find(m => m.is_cover) || media[0];
@@ -297,16 +298,60 @@
     }
 
     function initPlaceMap(lat, lng, approximate) {
-        if (!lat || !lng || typeof L === 'undefined') return;
-        placeMap = L.map('placeMap').setView([lat, lng], approximate ? 10 : 15);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(placeMap);
+        if (!lat || !lng) return;
+        const container = document.getElementById('placeMap');
+        if (!container) return;
 
-        if (approximate) {
-            L.circle([lat, lng], { radius: 5000, color: '#2563eb', fillOpacity: 0.15, weight: 2 }).addTo(placeMap);
-        } else {
-            L.marker([lat, lng]).addTo(placeMap);
+        const useGoogle = typeof google !== 'undefined' && google.maps;
+
+        if (useGoogle) {
+            placeMap = new google.maps.Map(container, {
+                center: { lat: lat, lng: lng },
+                zoom: approximate ? 10 : 15,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: false,
+                styles: [
+                    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+                    { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+                ]
+            });
+
+            if (approximate) {
+                new google.maps.Circle({
+                    map: placeMap,
+                    center: { lat: lat, lng: lng },
+                    radius: 5000,
+                    fillColor: '#6C63FF',
+                    fillOpacity: 0.12,
+                    strokeColor: '#6C63FF',
+                    strokeWeight: 2
+                });
+            } else {
+                new google.maps.Marker({
+                    position: { lat: lat, lng: lng },
+                    map: placeMap,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: '#6C63FF',
+                        fillOpacity: 0.9,
+                        strokeColor: '#fff',
+                        strokeWeight: 2,
+                        scale: 10
+                    }
+                });
+            }
+        } else if (typeof L !== 'undefined') {
+            placeMap = L.map('placeMap').setView([lat, lng], approximate ? 10 : 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(placeMap);
+
+            if (approximate) {
+                L.circle([lat, lng], { radius: 5000, color: '#2563eb', fillOpacity: 0.15, weight: 2 }).addTo(placeMap);
+            } else {
+                L.marker([lat, lng]).addTo(placeMap);
+            }
         }
     }
 

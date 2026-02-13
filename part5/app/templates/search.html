@@ -10,13 +10,14 @@
     <link rel="stylesheet" href="/static/css/main.css">
     <link rel="stylesheet" href="/static/css/search.css">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDKXY_py-Ku0hm_EKZAYV5A86PTpzdNSSY&language=ar"></script>
 </head>
 <body>
 
 <!-- ─── NAVBAR ─── -->
 <nav class="nav">
     <div class="container nav__inner">
-        <a href="/" class="nav__logo">Rizi</a>
+        <a href="/" class="nav__logo"><img src="/static/images/logo.png" alt="Rizi" class="nav__logo-img"> Rizi</a>
         <div class="nav__search-mini">
             <input type="text" id="navSearchInput" class="nav__search-input" placeholder="ابحث..." data-t="search_placeholder">
             <button class="btn btn--icon" onclick="doSearch()"><i data-lucide="search"></i></button>
@@ -232,12 +233,27 @@
         params.set('lang', getLang());
 
         const grid = document.getElementById('placesGrid');
-        grid.innerHTML = '<div class="loading-spinner"></div>';
+        grid.innerHTML = Array(6).fill('').map(() => `
+            <div class="place-card" style="pointer-events:none;">
+                <div class="skeleton" style="aspect-ratio:4/3;"></div>
+                <div style="padding:16px;">
+                    <div class="skeleton" style="height:1rem;width:70%;margin-bottom:8px;"></div>
+                    <div class="skeleton" style="height:0.8rem;width:40%;"></div>
+                </div>
+            </div>
+        `).join('');
 
         const data = await api.get(`/places?${params.toString()}`);
 
         if (!data || (Array.isArray(data) && !data.length)) {
-            grid.innerHTML = `<p class="text-center text-muted">${t('no_results')}</p>`;
+            grid.innerHTML = `
+                <div class="empty-state" style="grid-column:1/-1;">
+                    <i data-lucide="search-x" style="width:56px;height:56px;margin:0 auto 16px;display:block;opacity:0.4;"></i>
+                    <p style="font-size:1.1rem;margin-bottom:8px;">لا توجد نتائج</p>
+                    <p style="font-size:0.9rem;color:var(--text-tertiary);">جرّب تعديل الفلاتر أو البحث بكلمات مختلفة</p>
+                </div>
+            `;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             document.getElementById('resultsCount').textContent = '0 نتيجة';
             return;
         }
@@ -257,23 +273,35 @@
     function createSearchCard(p) {
         const lang = getLang();
         const title = lang === 'ar' ? (p.title_ar || p.title_en || p.title) : (p.title_en || p.title_ar || p.title);
-        const city = p.city ? (lang === 'ar' ? (p.city.name_ar || p.city.name_en || '') : (p.city.name_en || p.city.name_ar || '')) : '';
+        const cityName = p.city ? (lang === 'ar' ? (p.city.name_ar || p.city.name_en || '') : (p.city.name_en || p.city.name_ar || '')) : '';
+        const typeName = p.property_type
+            ? (lang === 'ar' ? (p.property_type.name_ar || p.property_type.name_en || '') : (p.property_type.name_en || ''))
+            : '';
         const image = p.image_url || p.cover_image || CONFIG.PLACEHOLDER_IMAGE;
-        const rating = p.average_rating ? p.average_rating.toFixed(1) : '—';
+        const rating = p.average_rating ? p.average_rating.toFixed(1) : null;
+        const reviewCount = p.review_count || 0;
 
         return `
             <a href="/place/${p.id}" class="place-card">
-                <div class="place-card__image">
+                <div class="place-card-image">
                     <img src="${image}" alt="${title}" loading="lazy">
-                    ${p.is_featured ? '<span class="place-card__badge"><i data-lucide="crown" style="width:14px;height:14px;display:inline;"></i> Elite</span>' : ''}
+                    ${p.is_featured ? '<span class="place-card-badge"><i data-lucide="crown" style="width:12px;height:12px;display:inline;"></i> Elite</span>' : ''}
+                    <button class="place-card-fav" onclick="event.preventDefault();event.stopPropagation();">
+                        <i data-lucide="heart" style="width:18px;height:18px;"></i>
+                    </button>
                 </div>
-                <div class="place-card__body">
-                    <div class="place-card__title">${title}</div>
-                    <div class="place-card__city">${city}</div>
+                <div class="place-card-body">
+                    ${cityName ? `<div class="place-card-location"><i data-lucide="map-pin" style="width:14px;height:14px;flex-shrink:0;"></i> ${cityName}</div>` : ''}
+                    <div class="place-card-title">${title}</div>
+                    <div class="place-card-info">
+                        ${p.bedrooms ? `<span><i data-lucide="bed-double" style="width:14px;height:14px;"></i> ${p.bedrooms}</span>` : ''}
+                        ${p.max_guests ? `<span><i data-lucide="users" style="width:14px;height:14px;"></i> ${p.max_guests}</span>` : ''}
+                        ${typeName ? `<span>${typeName}</span>` : ''}
+                    </div>
                 </div>
-                <div class="place-card__footer">
-                    <span class="place-card__price">${formatPrice(p.price_per_night)} <small>${t('per_night')}</small></span>
-                    <span class="place-card__rating">★ ${rating}</span>
+                <div class="place-card-footer">
+                    <span class="place-card-price">${formatPrice(p.price_per_night)} <small>${t('per_night')}</small></span>
+                    <span class="place-card-rating">${rating ? `<span class="star">★</span> ${rating}` : '<span style="opacity:0.4;">جديد</span>'} ${reviewCount ? `<small>(${reviewCount})</small>` : ''}</span>
                 </div>
             </a>
         `;
@@ -314,26 +342,87 @@
         el.style.display = visible ? 'none' : 'block';
         document.getElementById('mapToggleLabel').textContent = visible ? 'عرض الخريطة' : 'إخفاء الخريطة';
         if (!visible && !searchMap) {
-            searchMap = L.map('searchMap').setView(CONFIG.MAP_CENTER, 6);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap'
-            }).addTo(searchMap);
+            const useGoogle = typeof google !== 'undefined' && google.maps;
+            if (useGoogle) {
+                searchMap = new google.maps.Map(el, {
+                    center: { lat: CONFIG.MAP_CENTER[0], lng: CONFIG.MAP_CENTER[1] },
+                    zoom: CONFIG.MAP_ZOOM,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: false,
+                    styles: [
+                        { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+                        { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+                    ]
+                });
+                searchMap._provider = 'google';
+            } else {
+                searchMap = L.map('searchMap').setView(CONFIG.MAP_CENTER, CONFIG.MAP_ZOOM);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(searchMap);
+                searchMap._provider = 'osm';
+            }
         }
-        if (searchMap) setTimeout(() => searchMap.invalidateSize(), 200);
+        if (searchMap) {
+            if (searchMap._provider === 'google') {
+                setTimeout(() => google.maps.event.trigger(searchMap, 'resize'), 200);
+            } else {
+                setTimeout(() => searchMap.invalidateSize(), 200);
+            }
+        }
     }
 
     function updateSearchMap(places) {
         if (!searchMap) return;
-        searchMarkers.forEach(m => searchMap.removeLayer(m));
+        const isGoogle = searchMap._provider === 'google';
+
+        // Clear markers
+        searchMarkers.forEach(m => {
+            if (isGoogle) m.setMap(null);
+            else searchMap.removeLayer(m);
+        });
         searchMarkers = [];
+
+        const bounds = isGoogle ? new google.maps.LatLngBounds() : null;
+
         places.forEach(p => {
             if (!p.latitude || !p.longitude) return;
-            const m = L.marker([p.latitude, p.longitude]).addTo(searchMap)
-                .bindPopup(`<strong>${p.title_en || p.title_ar}</strong><br>${formatPrice(p.price_per_night)}`);
-            searchMarkers.push(m);
+            if (isGoogle) {
+                const marker = new google.maps.Marker({
+                    position: { lat: p.latitude, lng: p.longitude },
+                    map: searchMap,
+                    title: p.title_en || p.title_ar || '',
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: '#6C63FF',
+                        fillOpacity: 0.9,
+                        strokeColor: '#fff',
+                        strokeWeight: 2,
+                        scale: 8
+                    }
+                });
+                const info = new google.maps.InfoWindow({
+                    content: `<div style="font-family:Cairo,sans-serif;padding:4px;">
+                        <strong>${p.title_en || p.title_ar}</strong><br>
+                        <span style="color:#6C63FF;font-weight:700;">${formatPrice(p.price_per_night)}</span>
+                    </div>`
+                });
+                marker.addListener('click', () => info.open(searchMap, marker));
+                searchMarkers.push(marker);
+                bounds.extend(marker.getPosition());
+            } else {
+                const m = L.marker([p.latitude, p.longitude]).addTo(searchMap)
+                    .bindPopup(`<strong>${p.title_en || p.title_ar}</strong><br>${formatPrice(p.price_per_night)}`);
+                searchMarkers.push(m);
+            }
         });
         if (searchMarkers.length) {
-            searchMap.fitBounds(L.featureGroup(searchMarkers).getBounds().pad(0.1));
+            if (isGoogle) {
+                searchMap.fitBounds(bounds, { padding: 50 });
+            } else {
+                searchMap.fitBounds(L.featureGroup(searchMarkers).getBounds().pad(0.1));
+            }
         }
     }
 

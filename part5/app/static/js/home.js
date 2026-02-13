@@ -8,10 +8,47 @@ let markers = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     applyTranslations();
+    showSkeletons();
     loadHomeData();
     initMap();
     initSearchBox();
 });
+
+/* ─── SKELETON LOADING STATES ─── */
+function showSkeletons() {
+    // Cities skeleton
+    const citiesGrid = document.getElementById('citiesGrid');
+    if (citiesGrid) {
+        citiesGrid.innerHTML = Array(6).fill('').map(() => `
+            <div class="city-card skeleton-card">
+                <div class="skeleton" style="width:100%;height:100%;border-radius:var(--radius-lg);"></div>
+            </div>
+        `).join('');
+    }
+    // Featured skeleton
+    const featuredSlider = document.getElementById('featuredSlider');
+    if (featuredSlider) {
+        featuredSlider.innerHTML = Array(4).fill('').map(() => `
+            <div class="place-card" style="min-width:300px;">
+                <div class="skeleton" style="aspect-ratio:4/3;"></div>
+                <div style="padding:16px;">
+                    <div class="skeleton" style="height:1rem;width:70%;margin-bottom:8px;"></div>
+                    <div class="skeleton" style="height:0.8rem;width:40%;"></div>
+                </div>
+            </div>
+        `).join('');
+    }
+    // Types skeleton
+    const typesGrid = document.getElementById('typesGrid');
+    if (typesGrid) {
+        typesGrid.innerHTML = Array(8).fill('').map(() => `
+            <div class="type-card" style="pointer-events:none;">
+                <div class="skeleton" style="width:48px;height:48px;border-radius:50%;margin:0 auto 8px;"></div>
+                <div class="skeleton" style="height:0.8rem;width:60%;margin:0 auto;"></div>
+            </div>
+        `).join('');
+    }
+}
 
 /* ─── LOAD ALL HOME DATA ─── */
 async function loadHomeData() {
@@ -22,19 +59,27 @@ async function loadHomeData() {
             renderCities(data.cities || []);
             renderFeatured(data.featured || []);
             renderPropertyTypes(data.property_types || []);
-            renderBudget(data.budget || []);
-            renderMonthly(data.monthly || []);
+            renderBudget(data.budget_places || data.budget || []);
+            renderMonthly(data.monthly_deals || data.monthly || []);
+            if (data.average_price) {
+                const el = document.getElementById('avgPrice');
+                if (el) el.textContent = Math.round(data.average_price).toLocaleString('ar-SA');
+            }
             loadMapMarkers();
         }
     } catch {
-        // Fallback: load sections individually
-        loadCities();
-        loadFeatured();
-        loadPropertyTypes();
-        loadBudget();
-        loadMonthly();
-        loadMapMarkers();
+        // Fallback: load sections individually with error isolation
+        await Promise.allSettled([
+            loadCities(),
+            loadFeatured(),
+            loadPropertyTypes(),
+            loadBudget(),
+            loadMonthly(),
+            loadMapMarkers(),
+        ]);
     }
+    // Reinitialize icons after all sections rendered
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 /* ─── CITIES SECTION ─── */
@@ -48,29 +93,31 @@ function renderCities(cities) {
     if (!grid) return;
 
     if (!cities.length) {
-        // Show placeholder Saudi cities
-        const placeholders = [
-            { name_ar: 'الرياض', name_en: 'Riyadh', image: CONFIG.PLACEHOLDER_IMAGES.riyadh },
-            { name_ar: 'جدة', name_en: 'Jeddah', image: CONFIG.PLACEHOLDER_IMAGES.jeddah },
-            { name_ar: 'مكة', name_en: 'Makkah', image: CONFIG.PLACEHOLDER_IMAGES.makkah },
-            { name_ar: 'المدينة', name_en: 'Madinah', image: CONFIG.PLACEHOLDER_IMAGES.madinah },
-            { name_ar: 'الدمام', name_en: 'Dammam', image: CONFIG.PLACEHOLDER_IMAGES.dammam },
-            { name_ar: 'أبها', name_en: 'Abha', image: CONFIG.PLACEHOLDER_IMAGES.abha },
-        ];
-        cities = placeholders;
+        grid.innerHTML = `
+            <div class="empty-state" style="grid-column:1/-1;text-align:center;padding:2rem;">
+                <i data-lucide="map-pin-off" style="width:48px;height:48px;margin:0 auto 12px;display:block;opacity:0.3;"></i>
+                <p style="color:var(--text-secondary);">لا توجد مدن متاحة حالياً</p>
+            </div>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+        return;
     }
 
     const lang = getLang();
-    grid.innerHTML = cities.map(c => `
-        <a href="/search?city=${c.id || ''}" class="city-card">
-            <img src="${c.image_url || c.image || CONFIG.PLACEHOLDER_IMAGES.riyadh}" 
-                 alt="${lang === 'ar' ? c.name_ar : c.name_en}" loading="lazy">
-            <div class="city-card__overlay">
-                <h3>${lang === 'ar' ? c.name_ar : c.name_en}</h3>
-                ${c.places_count ? `<span>${c.places_count} ${t('property_types')}</span>` : ''}
-            </div>
-        </a>
-    `).join('');
+    grid.innerHTML = cities.map(c => {
+        const name = lang === 'ar' ? c.name_ar : c.name_en;
+        const image = c.image_url || c.image || CONFIG.CITY_IMAGES[c.name_en?.toLowerCase()] || CONFIG.PLACEHOLDER_IMAGE;
+        return `
+            <a href="/search?city=${c.id || ''}" class="city-card">
+                <img src="${image}" 
+                     alt="${name}" loading="lazy" class="city-card-bg">
+                <div class="city-card-overlay"></div>
+                <div class="city-card-content">
+                    <h3 class="city-card-name">${name}</h3>
+                    ${c.places_count ? `<span class="city-card-count">${c.places_count} عقار</span>` : ''}
+                </div>
+            </a>
+        `;
+    }).join('');
 }
 
 /* ─── FEATURED / ELITE PLACES ─── */
@@ -96,17 +143,8 @@ function renderPropertyTypes(types) {
     if (!grid) return;
 
     if (!types.length) {
-        const defaults = [
-            { name_ar: 'شقق', name_en: 'Apartments', icon: 'building-2' },
-            { name_ar: 'شاليهات', name_en: 'Chalets', icon: 'house' },
-            { name_ar: 'استديوهات', name_en: 'Studios', icon: 'square' },
-            { name_ar: 'استراحات', name_en: 'Retreats', icon: 'umbrella' },
-            { name_ar: 'منتجعات', name_en: 'Resorts', icon: 'palm-tree' },
-            { name_ar: 'فلل', name_en: 'Villas', icon: 'home' },
-            { name_ar: 'مزارع', name_en: 'Farms', icon: 'wheat' },
-            { name_ar: 'مخيمات', name_en: 'Camps', icon: 'tent' },
-        ];
-        types = defaults;
+        grid.innerHTML = '<p style="text-align:center;color:var(--text-secondary);grid-column:1/-1;">لا توجد أنواع</p>';
+        return;
     }
 
     const lang = getLang();
@@ -152,31 +190,42 @@ function renderMonthly(places) {
 /* ─── PLACE CARD GENERATOR ─── */
 function createPlaceCard(place, showMonthly = false) {
     const lang = getLang();
-    const title = lang === 'ar' ? (place.title_ar || place.title_en) : (place.title_en || place.title_ar);
-    const city = lang === 'ar' ? (place.city_name_ar || place.city_name_en || '') : (place.city_name_en || place.city_name_ar || '');
-    const image = place.cover_image || place.image_url || CONFIG.PLACEHOLDER_IMAGES.riyadh;
+    const title = lang === 'ar' ? (place.title_ar || place.title_en || place.title) : (place.title_en || place.title_ar || place.title);
+    const cityName = place.city
+        ? (lang === 'ar' ? (place.city.name_ar || place.city.name_en || '') : (place.city.name_en || place.city.name_ar || ''))
+        : '';
+    const typeName = place.property_type
+        ? (lang === 'ar' ? (place.property_type.name_ar || place.property_type.name_en || '') : (place.property_type.name_en || ''))
+        : '';
+    const image = place.image_url || place.cover_image || CONFIG.PLACEHOLDER_IMAGE;
     const price = showMonthly && place.monthly_price
         ? formatPrice(place.monthly_price)
         : formatPrice(place.price_per_night);
     const unit = showMonthly ? t('per_month') : t('per_night');
-    const rating = place.average_rating ? place.average_rating.toFixed(1) : '—';
+    const rating = place.average_rating ? place.average_rating.toFixed(1) : null;
+    const reviewCount = place.review_count || 0;
 
     return `
         <a href="/place/${place.id}" class="place-card">
-            <div class="place-card__image">
+            <div class="place-card-image">
                 <img src="${image}" alt="${title}" loading="lazy">
-                ${place.is_featured ? '<span class="place-card__badge"><i data-lucide="crown" style="width:14px;height:14px;display:inline;"></i> Elite</span>' : ''}
-                <button class="place-card__fav" onclick="event.preventDefault();">
-                    <i data-lucide="heart"></i>
+                ${place.is_featured ? '<span class="place-card-badge"><i data-lucide="crown" style="width:12px;height:12px;display:inline;"></i> Elite</span>' : ''}
+                <button class="place-card-fav" onclick="event.preventDefault();event.stopPropagation();">
+                    <i data-lucide="heart" style="width:18px;height:18px;"></i>
                 </button>
             </div>
-            <div class="place-card__body">
-                <div class="place-card__title">${title}</div>
-                <div class="place-card__city">${city}</div>
+            <div class="place-card-body">
+                ${cityName ? `<div class="place-card-location"><i data-lucide="map-pin" style="width:14px;height:14px;flex-shrink:0;"></i> ${cityName}</div>` : ''}
+                <div class="place-card-title">${title}</div>
+                <div class="place-card-info">
+                    ${place.bedrooms ? `<span><i data-lucide="bed-double" style="width:14px;height:14px;"></i> ${place.bedrooms}</span>` : ''}
+                    ${place.max_guests ? `<span><i data-lucide="users" style="width:14px;height:14px;"></i> ${place.max_guests}</span>` : ''}
+                    ${typeName ? `<span>${typeName}</span>` : ''}
+                </div>
             </div>
-            <div class="place-card__footer">
-                <span class="place-card__price">${price} <small>${unit}</small></span>
-                <span class="place-card__rating">★ ${rating}</span>
+            <div class="place-card-footer">
+                <span class="place-card-price">${price} <small>${unit}</small></span>
+                <span class="place-card-rating">${rating ? `<span class="star">★</span> ${rating}` : '<span style="opacity:0.4;">جديد</span>'} ${reviewCount ? `<small>(${reviewCount})</small>` : ''}</span>
             </div>
         </a>
     `;
@@ -185,14 +234,31 @@ function createPlaceCard(place, showMonthly = false) {
 /* ─── MAP ─── */
 function initMap() {
     const container = document.getElementById('homeMap');
-    if (!container || typeof L === 'undefined') return;
+    if (!container) return;
 
-    map = L.map('homeMap').setView(CONFIG.MAP_CENTER, 6);
+    const useGoogle = CONFIG.MAP_PROVIDER === 'google' && typeof google !== 'undefined' && google.maps;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap',
-        maxZoom: 18,
-    }).addTo(map);
+    if (useGoogle) {
+        map = new google.maps.Map(container, {
+            center: { lat: CONFIG.MAP_CENTER[0], lng: CONFIG.MAP_CENTER[1] },
+            zoom: CONFIG.MAP_ZOOM,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            styles: [
+                { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+                { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+            ]
+        });
+        map._provider = 'google';
+    } else if (typeof L !== 'undefined') {
+        map = L.map('homeMap').setView(CONFIG.MAP_CENTER, CONFIG.MAP_ZOOM);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap',
+            maxZoom: 18,
+        }).addTo(map);
+        map._provider = 'osm';
+    }
 }
 
 async function loadMapMarkers() {
@@ -201,25 +267,62 @@ async function loadMapMarkers() {
         const data = await api.get('/maps/places');
         if (!data || !data.length) return;
 
+        const isGoogle = map._provider === 'google';
+
         // Clear existing
-        markers.forEach(m => map.removeLayer(m));
+        markers.forEach(m => {
+            if (isGoogle) m.setMap(null);
+            else map.removeLayer(m);
+        });
         markers = [];
+
+        const bounds = isGoogle ? new google.maps.LatLngBounds() : null;
 
         data.forEach(p => {
             if (!p.latitude || !p.longitude) return;
-            const marker = L.marker([p.latitude, p.longitude])
-                .addTo(map)
-                .bindPopup(`
-                    <strong>${p.title || ''}</strong><br>
-                    ${formatPrice(p.price_per_night)} ${t('per_night')}
-                `);
-            markers.push(marker);
+
+            if (isGoogle) {
+                const marker = new google.maps.Marker({
+                    position: { lat: p.latitude, lng: p.longitude },
+                    map: map,
+                    title: p.title || '',
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: '#6C63FF',
+                        fillOpacity: 0.9,
+                        strokeColor: '#fff',
+                        strokeWeight: 2,
+                        scale: 8
+                    }
+                });
+                const info = new google.maps.InfoWindow({
+                    content: `<div style="font-family:Cairo,sans-serif;padding:4px;">
+                        <strong>${p.title || ''}</strong><br>
+                        <span style="color:#6C63FF;font-weight:700;">${formatPrice(p.price_per_night)}</span> ${t('per_night')}
+                    </div>`
+                });
+                marker.addListener('click', () => info.open(map, marker));
+                markers.push(marker);
+                bounds.extend(marker.getPosition());
+            } else {
+                const marker = L.marker([p.latitude, p.longitude])
+                    .addTo(map)
+                    .bindPopup(`
+                        <strong>${p.title || ''}</strong><br>
+                        ${formatPrice(p.price_per_night)} ${t('per_night')}
+                    `);
+                markers.push(marker);
+            }
         });
 
-        // Fit map to markers
+        // Fit bounds
         if (markers.length) {
-            const group = L.featureGroup(markers);
-            map.fitBounds(group.getBounds().pad(0.1));
+            if (isGoogle) {
+                map.fitBounds(bounds, { padding: 50 });
+            } else {
+                const group = L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
         }
     } catch (err) {
         console.warn('Map markers failed:', err);
@@ -228,25 +331,6 @@ async function loadMapMarkers() {
 
 /* ─── SEARCH BOX ─── */
 function initSearchBox() {
-    const form = document.getElementById('heroSearchForm');
-    if (!form) return;
-
-    form.addEventListener('submit', e => {
-        e.preventDefault();
-        const city = document.getElementById('searchCity')?.value || '';
-        const checkIn = document.getElementById('searchCheckIn')?.value || '';
-        const checkOut = document.getElementById('searchCheckOut')?.value || '';
-        const guests = document.getElementById('searchGuests')?.value || '';
-
-        const params = new URLSearchParams();
-        if (city) params.set('city', city);
-        if (checkIn) params.set('check_in', checkIn);
-        if (checkOut) params.set('check_out', checkOut);
-        if (guests) params.set('guests', guests);
-
-        window.location.href = `/search?${params.toString()}`;
-    });
-
     // Set min date to today
     const today = new Date().toISOString().split('T')[0];
     const ci = document.getElementById('searchCheckIn');
@@ -254,6 +338,14 @@ function initSearchBox() {
     if (ci) ci.min = today;
     if (co) co.min = today;
     if (ci) ci.addEventListener('change', () => { if (co) co.min = ci.value; });
+
+    // Quick filter chips
+    document.querySelectorAll('.filter-chip[data-filter]').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+        });
+    });
 
     // City autocomplete
     initCityAutocomplete();
@@ -332,6 +424,34 @@ async function searchCityAutocomplete(q) {
 /* ─── QUICK FILTERS ─── */
 function filterByType(type) {
     window.location.href = `/search?type=${type}`;
+}
+
+function filterByTrip(type) {
+    window.location.href = `/search?trip_type=${type}`;
+}
+
+/* ─── HOME SEARCH ─── */
+function doSearch() {
+    const city = document.getElementById('searchCity')?.value || '';
+    const cityInput = document.getElementById('searchCityInput')?.value || '';
+    const checkIn = document.getElementById('searchCheckIn')?.value || '';
+    const checkOut = document.getElementById('searchCheckOut')?.value || '';
+    const guests = document.getElementById('searchGuests')?.value || '';
+
+    const params = new URLSearchParams();
+    if (city) params.set('city', city);
+    else if (cityInput) params.set('q', cityInput);
+    if (checkIn) params.set('check_in', checkIn);
+    if (checkOut) params.set('check_out', checkOut);
+    if (guests) params.set('guests', guests);
+
+    // Check active filter chip
+    const activeChip = document.querySelector('.filter-chip.active[data-filter]');
+    if (activeChip && activeChip.dataset.filter !== 'all') {
+        params.set('type', activeChip.dataset.filter);
+    }
+
+    window.location.href = `/search?${params.toString()}`;
 }
 
 /* ─── SCROLL TO TOP ─── */
