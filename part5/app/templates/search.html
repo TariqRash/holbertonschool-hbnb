@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>البحث — HBnB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/search.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<!-- ─── NAVBAR ─── -->
+<nav class="nav">
+    <div class="container nav__inner">
+        <a href="/" class="nav__logo">HBnB <span>V2</span></a>
+        <div class="nav__search-mini">
+            <input type="text" id="navSearchInput" class="nav__search-input" placeholder="ابحث..." data-t="search_placeholder">
+            <button class="btn btn--icon" onclick="doSearch()"><i data-lucide="search"></i></button>
+        </div>
+        <div class="nav__actions">
+            <button class="btn btn--icon" onclick="toggleLanguage()"><span id="langLabel">EN</span></button>
+            <button class="btn btn--icon" onclick="toggleTheme()"><i data-lucide="sun"></i></button>
+            <a href="/login" id="loginBtn" class="btn btn--primary btn--sm" data-t="login">تسجيل الدخول</a>
+            <div id="userMenu" class="nav__user" style="display:none" onclick="toggleUserDropdown()">
+                <img id="userAvatar" src="" alt="" class="nav__avatar">
+                <span id="userName"></span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="search-page">
+    <div class="search-layout">
+
+        <!-- Sidebar: Filters -->
+        <aside class="search-filters">
+            <h2><i data-lucide="sliders-horizontal"></i> الفلاتر</h2>
+
+            <!-- City -->
+            <div class="filter-group">
+                <label>المدينة</label>
+                <select id="filterCity" class="form-input" onchange="applyFilters()">
+                    <option value="">الكل</option>
+                </select>
+            </div>
+
+            <!-- Property Type -->
+            <div class="filter-group">
+                <label>نوع العقار</label>
+                <select id="filterType" class="form-input" onchange="applyFilters()">
+                    <option value="">الكل</option>
+                </select>
+            </div>
+
+            <!-- Price Range -->
+            <div class="filter-group">
+                <label>السعر لليلة (ر.س)</label>
+                <div class="price-range">
+                    <input type="number" id="filterPriceMin" class="form-input" placeholder="من" min="0">
+                    <span>—</span>
+                    <input type="number" id="filterPriceMax" class="form-input" placeholder="إلى">
+                </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="filter-group">
+                <label data-t="check_in">الوصول</label>
+                <input type="date" id="filterCheckIn" class="form-input">
+            </div>
+            <div class="filter-group">
+                <label data-t="check_out">المغادرة</label>
+                <input type="date" id="filterCheckOut" class="form-input">
+            </div>
+
+            <!-- Guests -->
+            <div class="filter-group">
+                <label data-t="guests">الضيوف</label>
+                <input type="number" id="filterGuests" class="form-input" min="1" max="20" value="1">
+            </div>
+
+            <!-- Trip Type -->
+            <div class="filter-group">
+                <label>نوع الرحلة</label>
+                <div class="filter-chips">
+                    <button class="chip" data-trip="" onclick="setTrip(this)">الكل</button>
+                    <button class="chip" data-trip="business" onclick="setTrip(this)">عمل</button>
+                    <button class="chip" data-trip="family" onclick="setTrip(this)">عائلية</button>
+                </div>
+            </div>
+
+            <button class="btn btn--primary btn--block" onclick="applyFilters()">
+                <i data-lucide="search"></i> بحث
+            </button>
+            <button class="btn btn--outline btn--block" onclick="resetFilters()" style="margin-top:0.5rem;">
+                مسح الفلاتر
+            </button>
+        </aside>
+
+        <!-- Main: Results -->
+        <div class="search-results">
+            <div class="search-results__header">
+                <h1 id="resultsTitle">نتائج البحث</h1>
+                <span id="resultsCount" class="results-count"></span>
+                <div class="sort-controls">
+                    <select id="sortBy" class="form-input" onchange="applyFilters()">
+                        <option value="">الترتيب</option>
+                        <option value="price_asc">السعر: الأقل</option>
+                        <option value="price_desc">السعر: الأعلى</option>
+                        <option value="rating">التقييم</option>
+                        <option value="newest">الأحدث</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Map toggle -->
+            <div class="map-toggle">
+                <button class="btn btn--outline btn--sm" onclick="toggleMap()">
+                    <i data-lucide="map"></i> <span id="mapToggleLabel">عرض الخريطة</span>
+                </button>
+            </div>
+
+            <!-- Map (hidden by default) -->
+            <div id="searchMap" class="search-map" style="display:none"></div>
+
+            <!-- Grid -->
+            <div id="placesGrid" class="places-grid">
+                <div class="loading-spinner"></div>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="pagination"></div>
+        </div>
+    </div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/js/config.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/auth.js"></script>
+<script>
+    let searchMap = null;
+    let searchMarkers = [];
+    let currentTrip = '';
+    let currentPage = 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        applyTranslations();
+        loadFilters();
+        readURLParams();
+        applyFilters();
+    });
+
+    // Populate filter dropdowns
+    async function loadFilters() {
+        const lang = getLang();
+        const isAr = lang === 'ar';
+
+        // Cities
+        const cities = await api.get('/cities');
+        const citySelect = document.getElementById('filterCity');
+        if (cities?.length) {
+            cities.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = isAr ? c.name_ar : c.name_en;
+                citySelect.appendChild(opt);
+            });
+        }
+
+        // Property Types
+        const types = await api.get('/property-types');
+        const typeSelect = document.getElementById('filterType');
+        if (types?.length) {
+            types.forEach(tp => {
+                const opt = document.createElement('option');
+                opt.value = tp.id;
+                opt.textContent = isAr ? tp.name_ar : tp.name_en;
+                typeSelect.appendChild(opt);
+            });
+        }
+
+        // Set min date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('filterCheckIn').min = today;
+        document.getElementById('filterCheckOut').min = today;
+    }
+
+    function readURLParams() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('city')) document.getElementById('filterCity').value = params.get('city');
+        if (params.get('type')) document.getElementById('filterType').value = params.get('type');
+        if (params.get('check_in')) document.getElementById('filterCheckIn').value = params.get('check_in');
+        if (params.get('check_out')) document.getElementById('filterCheckOut').value = params.get('check_out');
+        if (params.get('guests')) document.getElementById('filterGuests').value = params.get('guests');
+        if (params.get('trip_type')) {
+            currentTrip = params.get('trip_type');
+            document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.trip === currentTrip));
+        }
+    }
+
+    async function applyFilters() {
+        const params = new URLSearchParams();
+        const city = document.getElementById('filterCity').value;
+        const type = document.getElementById('filterType').value;
+        const priceMin = document.getElementById('filterPriceMin').value;
+        const priceMax = document.getElementById('filterPriceMax').value;
+        const checkIn = document.getElementById('filterCheckIn').value;
+        const checkOut = document.getElementById('filterCheckOut').value;
+        const guests = document.getElementById('filterGuests').value;
+        const sort = document.getElementById('sortBy').value;
+        const search = document.getElementById('navSearchInput').value;
+
+        if (city) params.set('city_id', city);
+        if (type) params.set('property_type_id', type);
+        if (priceMin) params.set('price_min', priceMin);
+        if (priceMax) params.set('price_max', priceMax);
+        if (checkIn) params.set('check_in', checkIn);
+        if (checkOut) params.set('check_out', checkOut);
+        if (guests) params.set('max_guests', guests);
+        if (currentTrip) params.set('trip_type', currentTrip);
+        if (sort) params.set('sort', sort);
+        if (search) params.set('search', search);
+        params.set('page', currentPage);
+        params.set('lang', getLang());
+
+        const grid = document.getElementById('placesGrid');
+        grid.innerHTML = '<div class="loading-spinner"></div>';
+
+        const data = await api.get(`/places?${params.toString()}`);
+
+        if (!data || (Array.isArray(data) && !data.length)) {
+            grid.innerHTML = `<p class="text-center text-muted">${t('no_results')}</p>`;
+            document.getElementById('resultsCount').textContent = '0 نتيجة';
+            return;
+        }
+
+        const places = Array.isArray(data) ? data : (data.places || []);
+        const total = data.total || places.length;
+
+        document.getElementById('resultsCount').textContent = `${total} نتيجة`;
+        grid.innerHTML = places.map(p => createSearchCard(p)).join('');
+
+        // Map markers
+        updateSearchMap(places);
+
+        lucide.createIcons();
+    }
+
+    function createSearchCard(p) {
+        const lang = getLang();
+        const title = lang === 'ar' ? (p.title_ar || p.title_en) : (p.title_en || p.title_ar);
+        const city = lang === 'ar' ? (p.city_name_ar || '') : (p.city_name_en || '');
+        const image = p.cover_image || p.image_url || CONFIG.PLACEHOLDER_IMAGES.riyadh;
+        const rating = p.average_rating ? p.average_rating.toFixed(1) : '—';
+
+        return `
+            <a href="/place/${p.id}" class="place-card">
+                <div class="place-card__image">
+                    <img src="${image}" alt="${title}" loading="lazy">
+                    ${p.is_featured ? '<span class="place-card__badge">⭐ Elite</span>' : ''}
+                </div>
+                <div class="place-card__body">
+                    <div class="place-card__title">${title}</div>
+                    <div class="place-card__city">${city}</div>
+                </div>
+                <div class="place-card__footer">
+                    <span class="place-card__price">${formatPrice(p.price_per_night)} <small>${t('per_night')}</small></span>
+                    <span class="place-card__rating">★ ${rating}</span>
+                </div>
+            </a>
+        `;
+    }
+
+    function setTrip(btn) {
+        currentTrip = btn.dataset.trip;
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilters();
+    }
+
+    function resetFilters() {
+        document.getElementById('filterCity').value = '';
+        document.getElementById('filterType').value = '';
+        document.getElementById('filterPriceMin').value = '';
+        document.getElementById('filterPriceMax').value = '';
+        document.getElementById('filterCheckIn').value = '';
+        document.getElementById('filterCheckOut').value = '';
+        document.getElementById('filterGuests').value = '1';
+        document.getElementById('sortBy').value = '';
+        document.getElementById('navSearchInput').value = '';
+        currentTrip = '';
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        document.querySelector('.chip[data-trip=""]')?.classList.add('active');
+        applyFilters();
+    }
+
+    function doSearch() {
+        currentPage = 1;
+        applyFilters();
+    }
+
+    // Map
+    function toggleMap() {
+        const el = document.getElementById('searchMap');
+        const visible = el.style.display !== 'none';
+        el.style.display = visible ? 'none' : 'block';
+        document.getElementById('mapToggleLabel').textContent = visible ? 'عرض الخريطة' : 'إخفاء الخريطة';
+        if (!visible && !searchMap) {
+            searchMap = L.map('searchMap').setView(CONFIG.MAP_CENTER, 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(searchMap);
+        }
+        if (searchMap) setTimeout(() => searchMap.invalidateSize(), 200);
+    }
+
+    function updateSearchMap(places) {
+        if (!searchMap) return;
+        searchMarkers.forEach(m => searchMap.removeLayer(m));
+        searchMarkers = [];
+        places.forEach(p => {
+            if (!p.latitude || !p.longitude) return;
+            const m = L.marker([p.latitude, p.longitude]).addTo(searchMap)
+                .bindPopup(`<strong>${p.title_en || p.title_ar}</strong><br>${formatPrice(p.price_per_night)}`);
+            searchMarkers.push(m);
+        });
+        if (searchMarkers.length) {
+            searchMap.fitBounds(L.featureGroup(searchMarkers).getBounds().pad(0.1));
+        }
+    }
+
+    lucide.createIcons();
+</script>
+</body>
+</html>

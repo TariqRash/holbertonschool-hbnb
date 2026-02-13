@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم — HBnB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/owner.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="container nav__inner">
+        <a href="/" class="nav__logo">HBnB <span>V2</span></a>
+        <div class="nav__actions">
+            <button class="btn btn--icon" onclick="toggleLanguage()"><span id="langLabel">EN</span></button>
+            <button class="btn btn--icon" onclick="toggleTheme()"><i data-lucide="sun"></i></button>
+            <div id="userMenu" class="nav__user" onclick="toggleUserDropdown()">
+                <img id="userAvatar" src="" alt="" class="nav__avatar">
+                <span id="userName"></span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="owner-page">
+    <div class="container">
+
+        <!-- Stats Cards -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <i data-lucide="building-2"></i>
+                <div>
+                    <span id="statPlaces" class="stat-value">0</span>
+                    <label>عقاراتي</label>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i data-lucide="calendar-check"></i>
+                <div>
+                    <span id="statBookings" class="stat-value">0</span>
+                    <label>حجوزات نشطة</label>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i data-lucide="star"></i>
+                <div>
+                    <span id="statRating" class="stat-value">—</span>
+                    <label>متوسط التقييم</label>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i data-lucide="banknote"></i>
+                <div>
+                    <span id="statRevenue" class="stat-value">٠</span>
+                    <label>الإيرادات</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="owner-tabs">
+            <button class="tab active" onclick="showTab('properties', this)">
+                <i data-lucide="home"></i> عقاراتي
+            </button>
+            <button class="tab" onclick="showTab('bookings', this)">
+                <i data-lucide="calendar"></i> الحجوزات
+            </button>
+        </div>
+
+        <!-- Properties Tab -->
+        <div id="tabProperties" class="tab-content active">
+            <div class="tab-header">
+                <h2>عقاراتي</h2>
+                <button class="btn btn--primary" onclick="showAddProperty()">
+                    <i data-lucide="plus"></i> إضافة عقار
+                </button>
+            </div>
+            <div id="propertiesList" class="properties-list">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <!-- Bookings Tab -->
+        <div id="tabBookings" class="tab-content">
+            <h2>حجوزات العملاء</h2>
+            <div id="ownerBookingsList" class="bookings-list">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- ─── ADD PROPERTY MODAL ─── -->
+<div id="addPropertyModal" class="modal" style="display:none">
+    <div class="modal__backdrop" onclick="closeAddProperty()"></div>
+    <div class="modal__content modal__content--lg">
+        <h2>إضافة عقار جديد</h2>
+        <form id="addPropertyForm" onsubmit="submitProperty(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>العنوان (عربي)</label>
+                    <input type="text" name="title_ar" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label>Title (English)</label>
+                    <input type="text" name="title_en" class="form-input" required>
+                </div>
+                <div class="form-group form-group--full">
+                    <label>الوصف (عربي)</label>
+                    <textarea name="description_ar" class="form-input" rows="3"></textarea>
+                </div>
+                <div class="form-group form-group--full">
+                    <label>Description (English)</label>
+                    <textarea name="description_en" class="form-input" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>السعر لليلة (ر.س)</label>
+                    <input type="number" name="price_per_night" class="form-input" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>المدينة</label>
+                    <select name="city_id" class="form-input" id="formCity" required></select>
+                </div>
+                <div class="form-group">
+                    <label>غرف النوم</label>
+                    <input type="number" name="bedrooms" class="form-input" min="0" value="1">
+                </div>
+                <div class="form-group">
+                    <label>الحمامات</label>
+                    <input type="number" name="bathrooms" class="form-input" min="0" value="1">
+                </div>
+                <div class="form-group">
+                    <label>الحد الأقصى للضيوف</label>
+                    <input type="number" name="max_guests" class="form-input" min="1" value="2">
+                </div>
+                <div class="form-group">
+                    <label>نوع الرحلة</label>
+                    <select name="trip_type" class="form-input">
+                        <option value="both">الكل</option>
+                        <option value="business">عمل</option>
+                        <option value="family">عائلية</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn--outline" onclick="closeAddProperty()">إلغاء</button>
+                <button type="submit" class="btn btn--primary">إضافة</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="/static/js/config.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/auth.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        applyTranslations();
+        if (!Auth.isLoggedIn()) return window.location.href = '/login';
+        if (!Auth.isOwner()) {
+            showToast('هذه الصفحة للمالكين فقط', 'error');
+            return window.location.href = '/';
+        }
+        loadOwnerData();
+    });
+
+    async function loadOwnerData() {
+        const user = Auth.getUser();
+        loadMyProperties(user.id);
+        loadOwnerBookings();
+        loadCityOptions();
+    }
+
+    async function loadMyProperties(userId) {
+        const data = await api.get(`/users/${userId}/places`);
+        const list = document.getElementById('propertiesList');
+        const lang = getLang();
+        const isAr = lang === 'ar';
+
+        if (!data?.length) {
+            list.innerHTML = '<div class="empty-state"><i data-lucide="home"></i><p>لا توجد عقارات بعد</p></div>';
+            lucide.createIcons();
+            return;
+        }
+
+        document.getElementById('statPlaces').textContent = data.length;
+
+        list.innerHTML = data.map(p => `
+            <div class="property-item">
+                <img src="${p.cover_image || CONFIG.PLACEHOLDER_IMAGES.riyadh}" alt="">
+                <div class="property-item__info">
+                    <h3>${isAr ? (p.title_ar || p.title_en) : (p.title_en || p.title_ar)}</h3>
+                    <p>${formatPrice(p.price_per_night)} ${t('per_night')}</p>
+                    <span class="property-item__rating">★ ${p.average_rating?.toFixed(1) || '—'}</span>
+                </div>
+                <div class="property-item__actions">
+                    <a href="/place/${p.id}" class="btn btn--outline btn--sm">عرض</a>
+                </div>
+            </div>
+        `).join('');
+
+        lucide.createIcons();
+    }
+
+    async function loadOwnerBookings() {
+        const data = await api.get('/owner/bookings') || [];
+        const list = document.getElementById('ownerBookingsList');
+        const lang = getLang();
+        const isAr = lang === 'ar';
+
+        const active = data.filter(b => ['confirmed', 'checked_in'].includes(b.status));
+        document.getElementById('statBookings').textContent = active.length;
+
+        if (!data.length) {
+            list.innerHTML = '<div class="empty-state"><i data-lucide="calendar-x2"></i><p>لا توجد حجوزات</p></div>';
+            lucide.createIcons();
+            return;
+        }
+
+        list.innerHTML = data.map(b => `
+            <div class="booking-item">
+                <div class="booking-item__info">
+                    <h3>${b.guest_name || 'Guest'} — ${isAr ? (b.place?.title_ar || '') : (b.place?.title_en || '')}</h3>
+                    <p>${new Date(b.check_in).toLocaleDateString()} → ${new Date(b.check_out).toLocaleDateString()}</p>
+                    <span class="status-badge status-badge--${b.status === 'confirmed' ? 'success' : b.status === 'pending' ? 'warning' : 'info'}">${b.status}</span>
+                </div>
+                <div class="booking-item__actions">
+                    ${b.status === 'pending' ? `<button class="btn btn--primary btn--sm" onclick="confirmBooking('${b.id}')">تأكيد</button>` : ''}
+                    <span class="booking-item__price">${formatPrice(b.total_price)}</span>
+                </div>
+            </div>
+        `).join('');
+
+        lucide.createIcons();
+    }
+
+    async function loadCityOptions() {
+        const cities = await api.get('/cities');
+        const select = document.getElementById('formCity');
+        const isAr = getLang() === 'ar';
+        if (cities?.length) {
+            select.innerHTML = cities.map(c => `<option value="${c.id}">${isAr ? c.name_ar : c.name_en}</option>`).join('');
+        }
+    }
+
+    async function confirmBooking(id) {
+        const res = await api.post(`/owner/bookings/${id}/confirm`);
+        if (res.error) return showToast(res.error, 'error');
+        showToast('تم تأكيد الحجز', 'success');
+        loadOwnerBookings();
+    }
+
+    function showTab(name, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.owner-tabs .tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(`tab${name.charAt(0).toUpperCase() + name.slice(1)}`).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function showAddProperty() {
+        document.getElementById('addPropertyModal').style.display = 'flex';
+    }
+
+    function closeAddProperty() {
+        document.getElementById('addPropertyModal').style.display = 'none';
+    }
+
+    async function submitProperty(e) {
+        e.preventDefault();
+        const form = e.target;
+        const data = Object.fromEntries(new FormData(form));
+        data.price_per_night = parseFloat(data.price_per_night);
+        data.bedrooms = parseInt(data.bedrooms);
+        data.bathrooms = parseInt(data.bathrooms);
+        data.max_guests = parseInt(data.max_guests);
+
+        const res = await api.post('/places', data);
+        if (res.error) return showToast(res.error, 'error');
+        showToast('تم إضافة العقار بنجاح!', 'success');
+        closeAddProperty();
+        loadOwnerData();
+    }
+
+    lucide.createIcons();
+</script>
+</body>
+</html>

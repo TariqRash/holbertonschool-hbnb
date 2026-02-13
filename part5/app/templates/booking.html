@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأكيد الحجز — HBnB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/booking.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="container nav__inner">
+        <a href="/" class="nav__logo">HBnB <span>V2</span></a>
+        <div class="nav__actions">
+            <button class="btn btn--icon" onclick="toggleLanguage()"><span id="langLabel">EN</span></button>
+            <button class="btn btn--icon" onclick="toggleTheme()"><i data-lucide="sun"></i></button>
+        </div>
+    </div>
+</nav>
+
+<main class="booking-page">
+    <div class="container">
+        <div id="bookingLoading" class="loading-spinner"></div>
+
+        <div id="bookingContent" style="display:none">
+            <!-- Status Banner -->
+            <div id="statusBanner" class="status-banner"></div>
+
+            <div class="booking-layout">
+                <!-- Left: Booking Details -->
+                <div class="booking-details">
+                    <h1>تفاصيل الحجز</h1>
+
+                    <!-- Place info -->
+                    <div class="booking-place" id="bookingPlace"></div>
+
+                    <!-- Dates -->
+                    <div class="booking-info-grid">
+                        <div class="info-item">
+                            <i data-lucide="calendar"></i>
+                            <div>
+                                <label data-t="check_in">الوصول</label>
+                                <span id="bCheckIn"></span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i data-lucide="calendar-check"></i>
+                            <div>
+                                <label data-t="check_out">المغادرة</label>
+                                <span id="bCheckOut"></span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i data-lucide="moon"></i>
+                            <div>
+                                <label>الليالي</label>
+                                <span id="bNights"></span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i data-lucide="users"></i>
+                            <div>
+                                <label data-t="guests">الضيوف</label>
+                                <span id="bGuests"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Access Instructions (shown when confirmed) -->
+                    <div id="accessInstructions" class="access-section" style="display:none">
+                        <h2><i data-lucide="key"></i> تعليمات الوصول</h2>
+                        <div id="accessContent" class="access-content"></div>
+                    </div>
+                </div>
+
+                <!-- Right: Payment Summary -->
+                <aside class="payment-summary">
+                    <div class="payment-card">
+                        <h2>ملخص الدفع</h2>
+
+                        <div class="payment-rows">
+                            <div class="payment-row">
+                                <span id="pNightsLabel"></span>
+                                <span id="pSubtotal"></span>
+                            </div>
+                            <div class="payment-row" id="pDiscountRow" style="display:none">
+                                <span>خصم الإقامة الشهرية</span>
+                                <span id="pDiscount" class="text-success"></span>
+                            </div>
+                            <div class="payment-row">
+                                <span>رسوم الخدمة</span>
+                                <span id="pFee"></span>
+                            </div>
+                            <div class="payment-row payment-total">
+                                <span>الإجمالي</span>
+                                <span id="pTotal"></span>
+                            </div>
+                        </div>
+
+                        <!-- Payment button (for pending bookings) -->
+                        <div id="paymentActions">
+                            <button class="btn btn--primary btn--block" onclick="initiatePayment()" id="payBtn">
+                                <i data-lucide="credit-card"></i> ادفع الآن
+                            </button>
+                        </div>
+
+                        <!-- Cancel (for pending/confirmed) -->
+                        <button id="cancelBtn" class="btn btn--outline btn--block btn--danger" onclick="cancelBooking()" style="display:none">
+                            إلغاء الحجز
+                        </button>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="/static/js/config.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/auth.js"></script>
+<script>
+    const bookingId = window.location.pathname.split('/booking/')[1];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        applyTranslations();
+        if (!Auth.isLoggedIn()) return window.location.href = '/login';
+        loadBooking();
+    });
+
+    async function loadBooking() {
+        const data = await api.get(`/bookings/${bookingId}`);
+        if (!data || data.error) {
+            showToast('حجز غير موجود', 'error');
+            return;
+        }
+
+        document.getElementById('bookingLoading').style.display = 'none';
+        document.getElementById('bookingContent').style.display = 'block';
+
+        const lang = getLang();
+        const isAr = lang === 'ar';
+
+        // Status banner
+        const statusMap = {
+            pending: { text: 'في انتظار الدفع', color: 'warning', icon: 'clock' },
+            confirmed: { text: 'مؤكد', color: 'success', icon: 'check-circle' },
+            checked_in: { text: 'تم تسجيل الوصول', color: 'info', icon: 'log-in' },
+            completed: { text: 'مكتمل', color: 'success', icon: 'badge-check' },
+            cancelled: { text: 'ملغي', color: 'danger', icon: 'x-circle' },
+        };
+        const s = statusMap[data.status] || statusMap.pending;
+        document.getElementById('statusBanner').innerHTML = `
+            <div class="status-banner--${s.color}">
+                <i data-lucide="${s.icon}"></i> ${s.text}
+            </div>
+        `;
+
+        // Place info
+        document.getElementById('bookingPlace').innerHTML = `
+            <img src="${data.place?.cover_image || CONFIG.PLACEHOLDER_IMAGES.riyadh}" alt="">
+            <div>
+                <h3>${isAr ? (data.place?.title_ar || data.place?.title_en || '') : (data.place?.title_en || '')}</h3>
+                <p>${isAr ? (data.place?.city_name_ar || '') : (data.place?.city_name_en || '')}</p>
+            </div>
+        `;
+
+        // Dates
+        document.getElementById('bCheckIn').textContent = new Date(data.check_in).toLocaleDateString(isAr ? 'ar-SA' : 'en-US');
+        document.getElementById('bCheckOut').textContent = new Date(data.check_out).toLocaleDateString(isAr ? 'ar-SA' : 'en-US');
+        document.getElementById('bNights').textContent = data.total_nights;
+        document.getElementById('bGuests').textContent = `${data.adults || 1}`;
+
+        // Payment summary
+        document.getElementById('pNightsLabel').textContent = `${data.total_nights} ليلة × ${formatPrice(data.price_per_night)}`;
+        document.getElementById('pSubtotal').textContent = formatPrice(data.subtotal);
+        document.getElementById('pFee').textContent = formatPrice(data.service_fee);
+        document.getElementById('pTotal').textContent = formatPrice(data.total_price);
+
+        if (data.discount_amount > 0) {
+            document.getElementById('pDiscountRow').style.display = 'flex';
+            document.getElementById('pDiscount').textContent = `-${formatPrice(data.discount_amount)}`;
+        }
+
+        // Show/hide actions
+        if (data.status === 'pending') {
+            document.getElementById('payBtn').style.display = 'flex';
+            document.getElementById('cancelBtn').style.display = 'flex';
+        } else if (data.status === 'confirmed') {
+            document.getElementById('payBtn').style.display = 'none';
+            document.getElementById('cancelBtn').style.display = 'flex';
+        } else {
+            document.getElementById('paymentActions').style.display = 'none';
+        }
+
+        // Access instructions (confirmed/checked_in)
+        if (data.access_instructions && ['confirmed', 'checked_in'].includes(data.status)) {
+            document.getElementById('accessInstructions').style.display = 'block';
+            document.getElementById('accessContent').innerHTML = `
+                <p>${data.access_instructions}</p>
+                ${data.address ? `<p><strong>العنوان:</strong> ${data.address}</p>` : ''}
+            `;
+        }
+
+        lucide.createIcons();
+    }
+
+    async function initiatePayment() {
+        const res = await api.post('/payments/create-intent', { booking_id: bookingId });
+        if (res.error) return showToast(res.error, 'error');
+
+        if (res.demo_mode) {
+            showToast('تم الدفع بنجاح (وضع تجريبي)', 'success');
+            setTimeout(() => loadBooking(), 1000);
+        } else if (res.client_secret) {
+            // Real Stripe — would open Stripe Elements here
+            showToast('جاري توجيهك للدفع...', 'info');
+        }
+    }
+
+    async function cancelBooking() {
+        if (!confirm('هل أنت متأكد من إلغاء الحجز؟')) return;
+        const res = await api.post(`/bookings/${bookingId}/cancel`);
+        if (res.error) return showToast(res.error, 'error');
+        showToast('تم إلغاء الحجز', 'info');
+        loadBooking();
+    }
+
+    lucide.createIcons();
+</script>
+</body>
+</html>

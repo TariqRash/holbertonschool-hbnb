@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حجوزاتي — HBnB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/bookings.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<nav class="nav">
+    <div class="container nav__inner">
+        <a href="/" class="nav__logo">HBnB <span>V2</span></a>
+        <div class="nav__actions">
+            <button class="btn btn--icon" onclick="toggleLanguage()"><span id="langLabel">EN</span></button>
+            <button class="btn btn--icon" onclick="toggleTheme()"><i data-lucide="sun"></i></button>
+            <div id="userMenu" class="nav__user" onclick="toggleUserDropdown()">
+                <img id="userAvatar" src="" alt="" class="nav__avatar">
+                <span id="userName"></span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="bookings-page">
+    <div class="container">
+        <h1 data-t="bookings">حجوزاتي</h1>
+
+        <!-- Tabs -->
+        <div class="bookings-tabs">
+            <button class="tab active" data-status="" onclick="filterBookings(this)">الكل</button>
+            <button class="tab" data-status="confirmed" onclick="filterBookings(this)">مؤكدة</button>
+            <button class="tab" data-status="pending" onclick="filterBookings(this)">معلقة</button>
+            <button class="tab" data-status="completed" onclick="filterBookings(this)">مكتملة</button>
+            <button class="tab" data-status="cancelled" onclick="filterBookings(this)">ملغية</button>
+        </div>
+
+        <!-- Bookings List -->
+        <div id="bookingsList" class="bookings-list">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+</main>
+
+<script src="/static/js/config.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/auth.js"></script>
+<script>
+    let allBookings = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        applyTranslations();
+        if (!Auth.isLoggedIn()) return window.location.href = '/login';
+        loadBookings();
+    });
+
+    async function loadBookings() {
+        allBookings = await api.get('/bookings') || [];
+        renderBookings(allBookings);
+    }
+
+    function renderBookings(bookings) {
+        const list = document.getElementById('bookingsList');
+        const lang = getLang();
+        const isAr = lang === 'ar';
+
+        if (!bookings.length) {
+            list.innerHTML = `<div class="empty-state"><i data-lucide="calendar-x2"></i><p>لا توجد حجوزات</p></div>`;
+            lucide.createIcons();
+            return;
+        }
+
+        const statusColors = {
+            pending: 'warning', confirmed: 'success', checked_in: 'info',
+            completed: 'success', cancelled: 'danger'
+        };
+        const statusLabels = {
+            pending: 'معلق', confirmed: 'مؤكد', checked_in: 'تم الوصول',
+            completed: 'مكتمل', cancelled: 'ملغي'
+        };
+
+        list.innerHTML = bookings.map(b => `
+            <a href="/booking/${b.id}" class="booking-item">
+                <img src="${b.place?.cover_image || CONFIG.PLACEHOLDER_IMAGES.riyadh}" alt="" class="booking-item__img">
+                <div class="booking-item__info">
+                    <h3>${isAr ? (b.place?.title_ar || b.place?.title_en || '') : (b.place?.title_en || '')}</h3>
+                    <p>${isAr ? (b.place?.city_name_ar || '') : (b.place?.city_name_en || '')}</p>
+                    <div class="booking-item__dates">
+                        <span><i data-lucide="calendar"></i> ${new Date(b.check_in).toLocaleDateString(isAr ? 'ar-SA' : 'en-US')}</span>
+                        <span>→</span>
+                        <span>${new Date(b.check_out).toLocaleDateString(isAr ? 'ar-SA' : 'en-US')}</span>
+                    </div>
+                </div>
+                <div class="booking-item__end">
+                    <span class="status-badge status-badge--${statusColors[b.status]}">${statusLabels[b.status] || b.status}</span>
+                    <span class="booking-item__price">${formatPrice(b.total_price)}</span>
+                </div>
+            </a>
+        `).join('');
+
+        lucide.createIcons();
+    }
+
+    function filterBookings(btn) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        const status = btn.dataset.status;
+        const filtered = status ? allBookings.filter(b => b.status === status) : allBookings;
+        renderBookings(filtered);
+    }
+
+    lucide.createIcons();
+</script>
+</body>
+</html>

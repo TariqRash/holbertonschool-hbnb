@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBnB — منصة حجز العقارات</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Leaflet Maps (Free!) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/home.css">
+</head>
+<body>
+
+<!-- ═══════════════════ NAVBAR ═══════════════════ -->
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <a href="/" class="logo">
+            <span class="logo-icon">🏠</span>
+            <span class="logo-text">HBnB</span>
+        </a>
+
+        <!-- Search Bar (Desktop) -->
+        <div class="nav-search" id="navSearch">
+            <button class="search-pill" onclick="openSearchModal()">
+                <i data-lucide="search" class="icon-sm"></i>
+                <span data-t="search_placeholder">ابحث عن وجهتك المثالية...</span>
+            </button>
+        </div>
+
+        <div class="nav-actions">
+            <button class="btn-icon" onclick="toggleLanguage()" title="العربية / English">
+                <i data-lucide="globe" class="icon-sm"></i>
+                <span id="langLabel">EN</span>
+            </button>
+
+            <button class="btn-icon" onclick="toggleTheme()" title="الوضع الليلي">
+                <i data-lucide="moon" class="icon-sm" id="themeIcon"></i>
+            </button>
+
+            <div class="nav-user" id="navUser">
+                <!-- Logged out -->
+                <a href="/login" class="btn btn-primary btn-sm" id="loginBtn">
+                    <i data-lucide="log-in" class="icon-sm"></i>
+                    <span data-t="login">تسجيل الدخول</span>
+                </a>
+
+                <!-- Logged in (hidden by default) -->
+                <div class="user-menu hidden" id="userMenu">
+                    <button class="avatar-btn" onclick="toggleUserDropdown()">
+                        <img src="" alt="" class="avatar" id="userAvatar">
+                        <i data-lucide="chevron-down" class="icon-xs"></i>
+                    </button>
+                    <div class="dropdown hidden" id="userDropdown">
+                        <a href="/bookings"><i data-lucide="calendar" class="icon-sm"></i> <span data-t="bookings">حجوزاتي</span></a>
+                        <a href="/owner" id="ownerLink" class="hidden"><i data-lucide="home" class="icon-sm"></i> لوحة المالك</a>
+                        <hr>
+                        <button onclick="logout()"><i data-lucide="log-out" class="icon-sm"></i> <span data-t="logout">تسجيل الخروج</span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero">
+    <div class="hero-bg">
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="hero-content">
+        <h1 class="hero-title" data-t-html="true">
+            <span class="hero-title-ar">اكتشف إقامتك المثالية</span>
+            <span class="hero-subtitle-ar">شقق · شاليهات · فلل · مزارع وأكثر</span>
+        </h1>
+
+        <!-- Search Box -->
+        <div class="hero-search" id="heroSearch">
+            <div class="search-box">
+                <div class="search-field">
+                    <label><i data-lucide="map-pin" class="icon-sm"></i> <span data-t="cities">المدينة</span></label>
+                    <select id="searchCity" class="search-select">
+                        <option value="">كل المدن</option>
+                    </select>
+                </div>
+                <div class="search-divider"></div>
+                <div class="search-field">
+                    <label><i data-lucide="calendar" class="icon-sm"></i> <span data-t="check_in">الوصول</span></label>
+                    <input type="date" id="searchCheckIn" class="search-input">
+                </div>
+                <div class="search-divider"></div>
+                <div class="search-field">
+                    <label><i data-lucide="calendar-check" class="icon-sm"></i> <span data-t="check_out">المغادرة</span></label>
+                    <input type="date" id="searchCheckOut" class="search-input">
+                </div>
+                <div class="search-divider"></div>
+                <div class="search-field">
+                    <label><i data-lucide="users" class="icon-sm"></i> <span data-t="guests">الضيوف</span></label>
+                    <select id="searchGuests" class="search-select">
+                        <option value="1">1</option>
+                        <option value="2" selected>2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6+</option>
+                    </select>
+                </div>
+                <button class="search-btn" onclick="doSearch()">
+                    <i data-lucide="search"></i>
+                </button>
+            </div>
+
+            <!-- Quick Filters -->
+            <div class="quick-filters">
+                <button class="filter-chip active" data-filter="all">الكل</button>
+                <button class="filter-chip" data-filter="apartments">🏢 شقق</button>
+                <button class="filter-chip" data-filter="chalets">🏖️ شاليهات</button>
+                <button class="filter-chip" data-filter="villas">🏡 فلل</button>
+                <button class="filter-chip" data-filter="farms">🌳 مزارع</button>
+                <button class="filter-chip" data-filter="camps">⛺ مخيمات</button>
+                <button class="filter-chip" data-filter="resorts">🏨 منتجعات</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ CITIES ═══════════════════ -->
+<section class="section" id="citiesSection">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i data-lucide="map" class="icon-md"></i>
+                <span data-t="cities">المدن</span>
+            </h2>
+            <p class="section-subtitle">اختر مدينتك واكتشف أفضل العقارات</p>
+        </div>
+        <div class="cities-grid" id="citiesGrid">
+            <!-- Dynamic city cards -->
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ FEATURED / ELITE ═══════════════════ -->
+<section class="section section-alt" id="featuredSection">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i data-lucide="crown" class="icon-md"></i>
+                <span data-t="featured_places">عقارات مميزة</span>
+            </h2>
+            <a href="/search?featured=true" class="see-all">عرض الكل <i data-lucide="arrow-left" class="icon-xs"></i></a>
+        </div>
+        <div class="places-slider" id="featuredSlider">
+            <!-- Dynamic featured cards -->
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ TRIP TYPE ═══════════════════ -->
+<section class="section" id="tripSection">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i data-lucide="compass" class="icon-md"></i>
+                ما نوع رحلتك؟
+            </h2>
+        </div>
+        <div class="trip-cards">
+            <div class="trip-card trip-business" onclick="filterByTrip('business')">
+                <div class="trip-card-icon">💼</div>
+                <h3 data-t="business_trip">رحلة عمل</h3>
+                <p>شقق مفروشة بالقرب من مراكز الأعمال</p>
+            </div>
+            <div class="trip-card trip-family" onclick="filterByTrip('family')">
+                <div class="trip-card-icon">👨‍👩‍👧‍👦</div>
+                <h3 data-t="family_trip">رحلة عائلية</h3>
+                <p>فلل وشاليهات مع مساحات واسعة للعائلة</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ MONTHLY STAYS ═══════════════════ -->
+<section class="section section-alt" id="monthlySection">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i data-lucide="calendar-range" class="icon-md"></i>
+                <span data-t="monthly_stays">إقامة شهرية</span>
+            </h2>
+            <p class="section-subtitle">نفس العقار × 30 يوم مع خصم 10%</p>
+        </div>
+        <div class="places-slider" id="monthlySlider">
+            <!-- Dynamic monthly cards -->
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ PROPERTY TYPES ═══════════════════ -->
+<section class="section" id="typesSection">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i data-lucide="layout-grid" class="icon-md"></i>
+                <span data-t="property_types">أنواع العقارات</span>
+            </h2>
+        </div>
+        <div class="types-grid" id="typesGrid">
+            <!-- Dynamic property type cards -->
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ BUDGET FRIENDLY ═══════════════════ -->
+<section class="section section-alt" id="budgetSection">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i data-lucide="badge-percent" class="icon-md"></i>
+                <span data-t="budget_friendly">أسعار مناسبة</span>
+            </h2>
+            <p class="section-subtitle" id="avgPriceLabel">
+                أقل من <span id="avgPrice">0</span> ر.س / الليلة
+            </p>
+        </div>
+        <div class="places-grid" id="budgetGrid">
+            <!-- Dynamic budget cards -->
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ MAP SECTION ═══════════════════ -->
+<section class="section" id="mapSection">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i data-lucide="map-pin" class="icon-md"></i>
+                اكتشف على الخريطة
+            </h2>
+        </div>
+        <div class="map-container">
+            <div id="map" style="height: 450px; border-radius: 16px;"></div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>🏠 HBnB</h3>
+                <p>منصة حجز العقارات — اكتشف إقامتك المثالية في المملكة العربية السعودية</p>
+            </div>
+            <div class="footer-links">
+                <h4>روابط سريعة</h4>
+                <a href="/" data-t="home">الرئيسية</a>
+                <a href="/search" data-t="search">بحث</a>
+                <a href="/login" data-t="login">تسجيل الدخول</a>
+            </div>
+            <div class="footer-links">
+                <h4>معلومات</h4>
+                <a href="#" data-t="about">عن المنصة</a>
+                <a href="#" data-t="privacy">سياسة الخصوصية</a>
+                <a href="#" data-t="terms">الشروط والأحكام</a>
+            </div>
+            <div class="footer-links">
+                <h4>تواصل معنا</h4>
+                <a href="mailto:support@hbnb.sa">support@hbnb.sa</a>
+                <p>المملكة العربية السعودية 🇸🇦</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 HBnB — <span data-t="built_by">تم التطوير بواسطة</span>
+                <strong>Tariq</strong> · <strong>Shaden</strong> · <strong>Nora</strong>
+            </p>
+        </div>
+    </div>
+</footer>
+
+<!-- Scroll to top -->
+<button class="scroll-top hidden" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <i data-lucide="chevron-up"></i>
+</button>
+
+<!-- Scripts -->
+<script src="/static/js/config.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/auth.js"></script>
+<script src="/static/js/home.js"></script>
+<script>
+    lucide.createIcons();
+</script>
+</body>
+</html>

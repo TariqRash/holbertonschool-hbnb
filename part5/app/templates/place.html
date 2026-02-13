@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBnB — تفاصيل العقار</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/place.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<!-- ─── NAVBAR ─── -->
+<nav class="nav">
+    <div class="container nav__inner">
+        <a href="/" class="nav__logo">HBnB <span>V2</span></a>
+        <div class="nav__actions">
+            <button class="btn btn--icon" onclick="toggleLanguage()"><span id="langLabel">EN</span></button>
+            <button class="btn btn--icon" onclick="toggleTheme()"><i data-lucide="sun"></i></button>
+            <a href="/login" id="loginBtn" class="btn btn--primary btn--sm" data-t="login">تسجيل الدخول</a>
+            <div id="userMenu" class="nav__user" style="display:none" onclick="toggleUserDropdown()">
+                <img id="userAvatar" src="" alt="" class="nav__avatar">
+                <span id="userName"></span>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ─── PLACE DETAIL ─── -->
+<main class="place-page">
+    <div class="container">
+        <!-- Loading skeleton -->
+        <div id="placeSkeleton" class="skeleton-container">
+            <div class="skeleton skeleton--gallery"></div>
+            <div class="skeleton skeleton--title"></div>
+            <div class="skeleton skeleton--text"></div>
+        </div>
+
+        <!-- Content (hidden until loaded) -->
+        <div id="placeContent" style="display:none">
+
+            <!-- Gallery -->
+            <div id="placeGallery" class="place-gallery"></div>
+
+            <!-- Header -->
+            <div class="place-header">
+                <div class="place-header__info">
+                    <h1 id="placeTitle"></h1>
+                    <p id="placeCity" class="place-header__city"></p>
+                    <div class="place-header__meta">
+                        <span id="placeRating" class="place-rating"></span>
+                        <span id="placeReviewCount"></span>
+                        <span id="placeType" class="place-type-badge"></span>
+                    </div>
+                </div>
+                <div class="place-header__price">
+                    <span id="placePrice" class="place-price"></span>
+                    <small data-t="per_night">لليلة</small>
+                </div>
+            </div>
+
+            <!-- Two-column layout -->
+            <div class="place-grid">
+                <!-- Left: Details -->
+                <div class="place-details">
+                    <!-- Host -->
+                    <div class="place-host" id="placeHost"></div>
+
+                    <!-- Stats -->
+                    <div class="place-stats" id="placeStats"></div>
+
+                    <!-- Description -->
+                    <section class="place-section">
+                        <h2 data-t="description">الوصف</h2>
+                        <p id="placeDescription"></p>
+                    </section>
+
+                    <!-- Amenities -->
+                    <section class="place-section">
+                        <h2 data-t="amenities">المرافق</h2>
+                        <div id="placeAmenities" class="amenities-grid"></div>
+                    </section>
+
+                    <!-- Access Instructions (post-booking) -->
+                    <section class="place-section" id="accessSection" style="display:none">
+                        <h2>تعليمات الوصول</h2>
+                        <div id="placeAccess" class="access-card"></div>
+                    </section>
+
+                    <!-- Map -->
+                    <section class="place-section">
+                        <h2 data-t="location">الموقع</h2>
+                        <p id="mapNotice" class="map-notice">📍 الموقع التقريبي — يتم الكشف عن الموقع الدقيق بعد الحجز</p>
+                        <div id="placeMap" class="place-map"></div>
+                    </section>
+
+                    <!-- Reviews -->
+                    <section class="place-section">
+                        <h2 data-t="reviews">التقييمات</h2>
+                        <div id="placeReviews" class="reviews-list"></div>
+                        <button id="writeReviewBtn" class="btn btn--outline" style="display:none" onclick="showReviewForm()">
+                            <i data-lucide="edit-3"></i> <span data-t="write_review">اكتب تقييم</span>
+                        </button>
+                    </section>
+                </div>
+
+                <!-- Right: Booking Card -->
+                <aside class="booking-sidebar">
+                    <div class="booking-card" id="bookingCard">
+                        <div class="booking-card__price">
+                            <span id="bookingPrice"></span>
+                            <small data-t="per_night">لليلة</small>
+                        </div>
+
+                        <div class="booking-card__dates">
+                            <div class="form-group">
+                                <label data-t="check_in">الوصول</label>
+                                <input type="date" id="bookCheckIn" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label data-t="check_out">المغادرة</label>
+                                <input type="date" id="bookCheckOut" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="booking-card__guests">
+                            <div class="form-group">
+                                <label data-t="guests">الضيوف</label>
+                                <div class="guest-counter">
+                                    <button onclick="changeGuests(-1)">−</button>
+                                    <span id="guestCount">1</span>
+                                    <button onclick="changeGuests(1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="bookingSummary" class="booking-summary" style="display:none">
+                            <div class="summary-row">
+                                <span id="summaryNights"></span>
+                                <span id="summarySubtotal"></span>
+                            </div>
+                            <div class="summary-row">
+                                <span>رسوم الخدمة</span>
+                                <span id="summaryFee"></span>
+                            </div>
+                            <div class="summary-row summary-total">
+                                <span>الإجمالي</span>
+                                <span id="summaryTotal"></span>
+                            </div>
+                        </div>
+
+                        <button class="btn btn--primary btn--block" onclick="checkAvailability()" id="bookBtn" data-t="book_now">
+                            احجز الآن
+                        </button>
+                    </div>
+                </aside>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<!-- ─── REVIEW MODAL ─── -->
+<div id="reviewModal" class="modal" style="display:none">
+    <div class="modal__backdrop" onclick="closeReviewModal()"></div>
+    <div class="modal__content">
+        <h2>اكتب تقييمك</h2>
+        <div class="form-group">
+            <label>التقييم العام</label>
+            <div class="star-rating" id="starRating"></div>
+        </div>
+        <div class="form-group">
+            <label>التعليق</label>
+            <textarea id="reviewComment" class="form-input" rows="4" placeholder="شاركنا تجربتك..."></textarea>
+        </div>
+        <button class="btn btn--primary btn--block" onclick="submitReview()">إرسال التقييم</button>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/js/config.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/auth.js"></script>
+<script>
+    const placeId = window.location.pathname.split('/place/')[1];
+    let placeData = null;
+    let guestCount = 1;
+    let placeMap = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        applyTranslations();
+        loadPlace();
+    });
+
+    async function loadPlace() {
+        const lang = getLang();
+        placeData = await api.get(`/places/${placeId}?lang=${lang}`);
+        if (!placeData || placeData.error) {
+            showToast('عقار غير موجود', 'error');
+            return;
+        }
+
+        document.getElementById('placeSkeleton').style.display = 'none';
+        document.getElementById('placeContent').style.display = 'block';
+
+        const p = placeData;
+        const isAr = lang === 'ar';
+
+        // Title & header
+        document.getElementById('placeTitle').textContent = isAr ? (p.title_ar || p.title_en) : (p.title_en || p.title_ar);
+        document.getElementById('placeCity').textContent = isAr ? (p.city_name_ar || p.city_name_en || '') : (p.city_name_en || '');
+        document.getElementById('placeRating').textContent = `★ ${p.average_rating?.toFixed(1) || '—'}`;
+        document.getElementById('placeReviewCount').textContent = `(${p.reviews_count || 0} ${t('reviews')})`;
+        document.getElementById('placeType').textContent = isAr ? (p.property_type_ar || p.property_type_en || '') : (p.property_type_en || '');
+
+        // Price
+        const price = formatPrice(p.price_per_night);
+        document.getElementById('placePrice').textContent = price;
+        document.getElementById('bookingPrice').textContent = price;
+
+        // Description
+        document.getElementById('placeDescription').textContent = isAr ? (p.description_ar || p.description_en || '') : (p.description_en || '');
+
+        // Gallery
+        renderGallery(p.media || []);
+
+        // Host
+        if (p.owner) {
+            document.getElementById('placeHost').innerHTML = `
+                <img src="${p.owner.avatar_url || '/static/images/avatar-default.svg'}" alt="" class="host-avatar">
+                <div>
+                    <strong>${p.owner.first_name || 'Host'}</strong>
+                    <span>مالك العقار</span>
+                </div>
+            `;
+        }
+
+        // Stats
+        document.getElementById('placeStats').innerHTML = `
+            <div class="stat"><i data-lucide="users"></i><span>${p.max_guests || '—'} ${t('max_guests')}</span></div>
+            <div class="stat"><i data-lucide="bed-double"></i><span>${p.bedrooms || '—'} ${t('bedrooms')}</span></div>
+            <div class="stat"><i data-lucide="bath"></i><span>${p.bathrooms || '—'} ${t('bathrooms')}</span></div>
+        `;
+
+        // Amenities
+        if (p.amenities?.length) {
+            document.getElementById('placeAmenities').innerHTML = p.amenities.map(a => `
+                <div class="amenity-item">
+                    <i data-lucide="${a.icon || 'check'}"></i>
+                    <span>${isAr ? (a.name_ar || a.name_en) : (a.name_en || a.name_ar)}</span>
+                </div>
+            `).join('');
+        }
+
+        // Map
+        initPlaceMap(p.latitude, p.longitude, !p.exact_location);
+
+        // Access (post-booking)
+        if (p.access_instructions) {
+            document.getElementById('accessSection').style.display = 'block';
+            document.getElementById('placeAccess').innerHTML = `
+                <p>${isAr ? (p.access_instructions_ar || p.access_instructions_en) : (p.access_instructions_en || '')}</p>
+                ${p.floor_number ? `<p>الطابق: ${p.floor_number}</p>` : ''}
+                ${p.door_description ? `<p>${p.door_description}</p>` : ''}
+            `;
+            document.getElementById('mapNotice').style.display = 'none';
+        }
+
+        // Load reviews
+        loadReviews();
+
+        // Set date constraints
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('bookCheckIn').min = today;
+        document.getElementById('bookCheckOut').min = today;
+
+        // Re-init Lucide icons
+        lucide.createIcons();
+        document.title = `${document.getElementById('placeTitle').textContent} — HBnB`;
+    }
+
+    function renderGallery(media) {
+        const gallery = document.getElementById('placeGallery');
+        if (!media.length) {
+            gallery.innerHTML = `<img src="${CONFIG.PLACEHOLDER_IMAGES.riyadh}" alt="Property" class="gallery-main">`;
+            return;
+        }
+        const cover = media.find(m => m.is_cover) || media[0];
+        const rest = media.filter(m => m !== cover).slice(0, 4);
+        gallery.innerHTML = `
+            <div class="gallery-main"><img src="${cover.url}" alt="" loading="lazy"></div>
+            ${rest.length ? `<div class="gallery-grid">${rest.map(m => `<img src="${m.url}" alt="" loading="lazy">`).join('')}</div>` : ''}
+        `;
+    }
+
+    function initPlaceMap(lat, lng, approximate) {
+        if (!lat || !lng || typeof L === 'undefined') return;
+        placeMap = L.map('placeMap').setView([lat, lng], approximate ? 10 : 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(placeMap);
+
+        if (approximate) {
+            L.circle([lat, lng], { radius: 5000, color: '#2563eb', fillOpacity: 0.15, weight: 2 }).addTo(placeMap);
+        } else {
+            L.marker([lat, lng]).addTo(placeMap);
+        }
+    }
+
+    async function loadReviews() {
+        const data = await api.get(`/places/${placeId}/reviews`);
+        const list = document.getElementById('placeReviews');
+        if (!data || !data.length) {
+            list.innerHTML = '<p class="text-muted">لا توجد تقييمات بعد</p>';
+            return;
+        }
+        const lang = getLang();
+        list.innerHTML = data.map(r => `
+            <div class="review-item">
+                <div class="review-item__header">
+                    <strong>${r.user_name || 'Guest'}</strong>
+                    <span class="review-item__rating">★ ${r.rating}</span>
+                    <time>${new Date(r.created_at).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}</time>
+                </div>
+                <p>${r.comment || ''}</p>
+            </div>
+        `).join('');
+    }
+
+    // Guests counter
+    function changeGuests(delta) {
+        guestCount = Math.max(1, Math.min(guestCount + delta, placeData?.max_guests || 10));
+        document.getElementById('guestCount').textContent = guestCount;
+    }
+
+    // Check availability + price
+    async function checkAvailability() {
+        if (!Auth.isLoggedIn()) {
+            showToast('سجل الدخول أولاً', 'info');
+            return window.location.href = '/login';
+        }
+
+        const checkIn = document.getElementById('bookCheckIn').value;
+        const checkOut = document.getElementById('bookCheckOut').value;
+        if (!checkIn || !checkOut) return showToast('اختر التواريخ', 'error');
+
+        const res = await api.post('/bookings/check-availability', {
+            place_id: placeId,
+            check_in: checkIn,
+            check_out: checkOut,
+            adults: guestCount
+        });
+
+        if (res.error) return showToast(res.error, 'error');
+        if (!res.available) return showToast('غير متاح في هذه التواريخ', 'error');
+
+        // Show price summary
+        document.getElementById('bookingSummary').style.display = 'block';
+        document.getElementById('summaryNights').textContent = `${res.total_nights} ليلة × ${formatPrice(res.price_per_night)}`;
+        document.getElementById('summarySubtotal').textContent = formatPrice(res.subtotal);
+        document.getElementById('summaryFee').textContent = formatPrice(res.service_fee);
+        document.getElementById('summaryTotal').textContent = formatPrice(res.total_price);
+
+        // Change button to confirm
+        const btn = document.getElementById('bookBtn');
+        btn.textContent = t('confirm_booking');
+        btn.onclick = createBooking;
+    }
+
+    async function createBooking() {
+        const checkIn = document.getElementById('bookCheckIn').value;
+        const checkOut = document.getElementById('bookCheckOut').value;
+
+        const res = await api.post('/bookings', {
+            place_id: placeId,
+            check_in: checkIn,
+            check_out: checkOut,
+            adults: guestCount
+        });
+
+        if (res.error) return showToast(res.error, 'error');
+        showToast('تم الحجز بنجاح!', 'success');
+        setTimeout(() => window.location.href = `/booking/${res.id}`, 1000);
+    }
+
+    // Review modal
+    function showReviewForm() {
+        document.getElementById('reviewModal').style.display = 'flex';
+    }
+    function closeReviewModal() {
+        document.getElementById('reviewModal').style.display = 'none';
+    }
+    async function submitReview() {
+        const comment = document.getElementById('reviewComment').value;
+        const res = await api.post(`/places/${placeId}/reviews`, { rating: 5, comment });
+        if (res.error) return showToast(res.error, 'error');
+        showToast('شكراً لتقييمك!', 'success');
+        closeReviewModal();
+        loadReviews();
+    }
+
+    lucide.createIcons();
+</script>
+</body>
+</html>

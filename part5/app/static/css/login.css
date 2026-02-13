@@ -1,0 +1,163 @@
+/* ─── LOGIN PAGE ─── */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--bg-primary);
+}
+
+.login-card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-xl);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.login-card__header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.login-card__header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.login-card__header p {
+    color: var(--text-secondary);
+}
+
+/* Steps */
+.login-step {
+    display: none;
+}
+
+.login-step.active {
+    display: block;
+}
+
+/* Divider */
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
+/* OTP Inputs */
+.otp-inputs {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin: 1.5rem 0;
+    direction: ltr;
+}
+
+.otp-input {
+    width: 48px;
+    height: 56px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: border-color 0.2s;
+}
+
+.otp-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* Info text */
+.login-info {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+/* Success state */
+.login-success {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.login-success__icon {
+    width: 64px;
+    height: 64px;
+    color: var(--success);
+    margin-bottom: 1rem;
+}
+
+.login-success h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Owner section */
+.login-owner {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.login-owner p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Block button */
+.btn--block {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Text button */
+.btn--text {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    display: block;
+    text-align: center;
+}
+
+.btn--text:hover {
+    text-decoration: underline;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 1.5rem;
+    }
+
+    .otp-input {
+        width: 40px;
+        height: 48px;
+        font-size: 1.25rem;
+    }
+}

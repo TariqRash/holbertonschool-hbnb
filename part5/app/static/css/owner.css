@@ -1,0 +1,192 @@
+/* ─── OWNER DASHBOARD ─── */
+.owner-page {
+    padding-top: calc(var(--nav-height) + 2rem);
+    padding-bottom: 3rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+}
+
+.stat-card i {
+    width: 40px;
+    height: 40px;
+    color: var(--accent);
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.stat-card label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Tabs */
+.owner-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.owner-tabs .tab {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.owner-tabs .tab i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Tab content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.tab-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+}
+
+.tab-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* Properties List */
+.properties-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.property-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+}
+
+.property-item img {
+    width: 120px;
+    height: 90px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.property-item__info {
+    flex: 1;
+}
+
+.property-item__info h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.property-item__info p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.property-item__rating {
+    color: #f59e0b;
+    font-size: 0.875rem;
+}
+
+.property-item__actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Bookings in owner context */
+.owner-page .booking-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+}
+
+.owner-page .booking-item__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Modal large */
+.modal__content--lg {
+    max-width: 640px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group--full {
+    grid-column: 1 / -1;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .property-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .property-item img {
+        width: 100%;
+        height: 160px;
+    }
+}

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول — HBnB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/login.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+<!-- ─── NAVBAR (minimal) ─── -->
+<nav class="nav">
+    <div class="container nav__inner">
+        <a href="/" class="nav__logo">HBnB <span>V2</span></a>
+        <div class="nav__actions">
+            <button class="btn btn--icon" onclick="toggleLanguage()" title="Language">
+                <span id="langLabel">EN</span>
+            </button>
+            <button class="btn btn--icon" onclick="toggleTheme()" title="Theme">
+                <i data-lucide="sun"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- ─── LOGIN CARD ─── -->
+<main class="login-page">
+    <div class="login-card">
+        <div class="login-card__header">
+            <h1 data-t="login">تسجيل الدخول</h1>
+            <p>ادخل بريدك الإلكتروني للمتابعة</p>
+        </div>
+
+        <!-- Step 1: Email -->
+        <div id="stepEmail" class="login-step active">
+            <div class="form-group">
+                <label for="loginEmail" data-t="enter_email">أدخل بريدك الإلكتروني</label>
+                <input type="email" id="loginEmail" class="form-input" placeholder="example@email.com" required>
+            </div>
+            <button class="btn btn--primary btn--block" onclick="sendOTP()" data-t="send_otp">
+                إرسال رمز التحقق
+            </button>
+            <div class="login-divider"><span data-t="or">أو</span></div>
+            <button class="btn btn--outline btn--block" onclick="sendMagicLink()">
+                <i data-lucide="link"></i>
+                <span data-t="send_magic_link">إرسال رابط الدخول</span>
+            </button>
+        </div>
+
+        <!-- Step 2: OTP Verification -->
+        <div id="stepOTP" class="login-step">
+            <p class="login-info">تم إرسال رمز التحقق إلى <strong id="otpEmail"></strong></p>
+            <div class="otp-inputs">
+                <input type="text" maxlength="1" class="otp-input" data-idx="0" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-input" data-idx="1" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-input" data-idx="2" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-input" data-idx="3" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-input" data-idx="4" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-input" data-idx="5" inputmode="numeric">
+            </div>
+            <button class="btn btn--primary btn--block" onclick="verifyOTP()">
+                تأكيد
+            </button>
+            <button class="btn btn--text" onclick="goBackToEmail()">← رجوع</button>
+        </div>
+
+        <!-- Step 3: Magic Link Sent -->
+        <div id="stepMagic" class="login-step">
+            <div class="login-success">
+                <i data-lucide="mail-check" class="login-success__icon"></i>
+                <h2>تم إرسال الرابط!</h2>
+                <p>تحقق من بريدك الإلكتروني وانقر على رابط الدخول</p>
+            </div>
+            <button class="btn btn--text" onclick="goBackToEmail()">← رجوع</button>
+        </div>
+
+        <!-- Owner Registration -->
+        <div class="login-owner">
+            <p data-t="owner_register">سجّل كمالك عقار</p>
+            <a href="#" class="btn btn--outline btn--sm" onclick="showOwnerForm()">
+                <i data-lucide="building-2"></i> تسجيل
+            </a>
+        </div>
+    </div>
+</main>
+
+<script src="/static/js/config.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/auth.js"></script>
+<script>
+    // Redirect if already logged in
+    if (Auth.isLoggedIn()) window.location.href = '/';
+
+    let currentEmail = '';
+
+    async function sendOTP() {
+        const email = document.getElementById('loginEmail').value.trim();
+        if (!email) return showToast('أدخل بريدك الإلكتروني', 'error');
+        currentEmail = email;
+
+        const res = await Auth.requestOTP(email);
+        if (res.error) return showToast(res.error, 'error');
+
+        document.getElementById('otpEmail').textContent = email;
+        showStep('stepOTP');
+        // Focus first OTP input
+        document.querySelector('.otp-input[data-idx="0"]')?.focus();
+        showToast('تم إرسال رمز التحقق', 'success');
+    }
+
+    async function sendMagicLink() {
+        const email = document.getElementById('loginEmail').value.trim();
+        if (!email) return showToast('أدخل بريدك الإلكتروني', 'error');
+
+        const res = await Auth.requestMagicLink(email);
+        if (res.error) return showToast(res.error, 'error');
+
+        showStep('stepMagic');
+        showToast('تم إرسال رابط الدخول', 'success');
+    }
+
+    async function verifyOTP() {
+        const inputs = document.querySelectorAll('.otp-input');
+        const code = Array.from(inputs).map(i => i.value).join('');
+        if (code.length !== 6) return showToast('أدخل الرمز كاملاً', 'error');
+
+        const res = await Auth.verifyOTP(currentEmail, code);
+        if (res.error) return showToast(res.error, 'error');
+
+        showToast('تم تسجيل الدخول بنجاح!', 'success');
+        setTimeout(() => window.location.href = '/', 800);
+    }
+
+    function goBackToEmail() {
+        showStep('stepEmail');
+    }
+
+    function showStep(id) {
+        document.querySelectorAll('.login-step').forEach(s => s.classList.remove('active'));
+        document.getElementById(id)?.classList.add('active');
+    }
+
+    function showOwnerForm() {
+        // For now redirect — can be expanded to inline form
+        showToast('سيتم إضافة تسجيل المالك قريباً', 'info');
+    }
+
+    // OTP input auto-advance
+    document.querySelectorAll('.otp-input').forEach(input => {
+        input.addEventListener('input', e => {
+            const val = e.target.value;
+            if (val && val.length === 1) {
+                const next = e.target.nextElementSibling;
+                if (next && next.classList.contains('otp-input')) next.focus();
+            }
+        });
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Backspace' && !e.target.value) {
+                const prev = e.target.previousElementSibling;
+                if (prev && prev.classList.contains('otp-input')) prev.focus();
+            }
+        });
+    });
+
+    // Init icons
+    lucide.createIcons();
+</script>
+</body>
+</html>
