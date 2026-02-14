@@ -100,7 +100,24 @@ const translations = {
     "place.share.copied": "Link copied to clipboard!",
 
     // Char counter
-    "reviews.add.charCount": "{count} / {max} characters"
+    "reviews.add.charCount": "{count} / {max} characters",
+
+    // Register
+    "register.title": "Create Account",
+    "register.subtitle": "Join HBnB today",
+    "register.first_name.label": "First Name",
+    "register.first_name.placeholder": "First name",
+    "register.last_name.label": "Last Name",
+    "register.last_name.placeholder": "Last name",
+    "register.email.label": "Email",
+    "register.email.placeholder": "you@example.com",
+    "register.password.label": "Password",
+    "register.password.placeholder": "Choose a password",
+    "register.submit": "Create Account",
+    "register.has_account": "Already have an account?",
+    "register.login_link": "Sign in",
+    "login.no_account": "Don't have an account?",
+    "login.register_link": "Create one"
   },
 
   ar: {
@@ -199,7 +216,24 @@ const translations = {
     "place.share.copied": "تم نسخ الرابط!",
 
     // Char counter
-    "reviews.add.charCount": "{count} / {max} حرف"
+    "reviews.add.charCount": "{count} / {max} حرف",
+
+    // Register
+    "register.title": "إنشاء حساب",
+    "register.subtitle": "انضم إلى HBnB اليوم",
+    "register.first_name.label": "الاسم الأول",
+    "register.first_name.placeholder": "الاسم الأول",
+    "register.last_name.label": "اسم العائلة",
+    "register.last_name.placeholder": "اسم العائلة",
+    "register.email.label": "البريد الإلكتروني",
+    "register.email.placeholder": "you@example.com",
+    "register.password.label": "كلمة المرور",
+    "register.password.placeholder": "اختر كلمة مرور",
+    "register.submit": "إنشاء حساب",
+    "register.has_account": "لديك حساب بالفعل؟",
+    "register.login_link": "تسجيل الدخول",
+    "login.no_account": "ليس لديك حساب؟",
+    "login.register_link": "أنشئ واحداً"
   }
 };
 

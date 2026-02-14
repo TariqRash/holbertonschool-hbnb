@@ -683,6 +683,73 @@ form button[type="submit"]:active {
     animation: slideDown 0.3s ease;
 }
 
+#register-form {
+    max-width: 440px;
+    margin: 4rem auto;
+    background-color: var(--bg-card);
+    padding: 3rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    animation: fadeInUp 0.5s ease;
+    border: 1px solid var(--border-light);
+    position: relative;
+    overflow: hidden;
+}
+
+#register-form::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light), var(--secondary));
+}
+
+#register-form h2 {
+    text-align: center;
+    margin-bottom: 0.5rem;
+    color: var(--dark);
+    font-size: 1.6rem;
+    font-weight: 800;
+}
+
+#register-form .subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    font-size: 0.9rem;
+}
+
+#register-error {
+    color: #d32f2f;
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    display: none;
+    padding: 0.75rem;
+    background: #ffebee;
+    border-radius: var(--radius-sm);
+    animation: slideDown 0.3s ease;
+}
+
+.form-switch {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.form-switch a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.form-switch a:hover {
+    text-decoration: underline;
+}
+
 /* --- Success / Error Messages --- */
 .success-message {
     color: #1b5e20;

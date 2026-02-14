@@ -209,6 +209,104 @@ async function handleLogin(event) {
     }
 }
 
+// ==================== REGISTER PAGE ====================
+
+/**
+ * Toggle between login and register forms
+ * @param {string} form - 'login' or 'register'
+ */
+function toggleAuthForm(form) {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    if (!loginForm || !registerForm) return;
+
+    if (form === 'register') {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'flex';
+    } else {
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'flex';
+    }
+}
+
+/**
+ * Handle the register form submission
+ * @param {Event} event - The form submit event
+ */
+async function handleRegister(event) {
+    event.preventDefault();
+
+    const firstName = document.getElementById('reg-first-name').value.trim();
+    const lastName = document.getElementById('reg-last-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+    const errorEl = document.getElementById('register-error');
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+
+    // Loading state
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Creating account…';
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.7';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                password: password
+            })
+        });
+
+        if (response.ok) {
+            // Registration successful - auto login
+            const loginRes = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (loginRes.ok) {
+                const data = await loginRes.json();
+                document.cookie = `token=${data.access_token}; path=/`;
+                window.location.href = 'index.html';
+            } else {
+                // Registered but auto-login failed, switch to login form
+                showToast('success', 'Success', 'Account created! Please sign in.');
+                toggleAuthForm('login');
+            }
+        } else {
+            const errData = await response.json().catch(() => null);
+            const msg = errData && errData.error ? errData.error : 'Registration failed. Please try again.';
+            if (errorEl) {
+                errorEl.textContent = msg;
+                errorEl.style.display = 'block';
+            } else {
+                showToast('error', t('toast.error'), msg);
+            }
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+        }
+    } catch (error) {
+        const msg = 'Network error. Please check your connection.';
+        if (errorEl) {
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+        } else {
+            showToast('error', t('toast.error'), msg);
+        }
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+    }
+}
+
 // ==================== INDEX PAGE - PLACES LIST ====================
 
 // Store places data globally so filtering can access it
@@ -666,6 +764,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const loginForm = document.getElementById('login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', handleLogin);
+        }
+        const registerForm = document.getElementById('register-form');
+        if (registerForm) {
+            registerForm.addEventListener('submit', handleRegister);
         }
     }
 

@@ -15,6 +15,32 @@ login_model = api.model('Login', {
     'password': fields.String(required=True, description='User password')
 })
 
+register_model = api.model('Register', {
+    'first_name': fields.String(required=True, description='First name'),
+    'last_name': fields.String(required=True, description='Last name'),
+    'email': fields.String(required=True, description='User email'),
+    'password': fields.String(required=True, description='User password')
+})
+
+
+@api.route('/register')
+class Register(Resource):
+    @api.expect(register_model)
+    @api.doc('register')
+    def post(self):
+        """Register a new user (public endpoint)"""
+        data = request.get_json()
+
+        required_fields = ["first_name", "last_name", "email", "password"]
+        if not data or not all(f in data for f in required_fields):
+            return {"error": "Missing required fields"}, 400
+
+        if facade.get_user_by_email(data["email"]):
+            return {"error": "Email already registered"}, 400
+
+        user = facade.create_user(data)
+        return {"id": str(user.id), "message": "User created successfully"}, 201
+
 
 @api.route('/login')
 class Login(Resource):
