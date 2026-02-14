@@ -45,3 +45,48 @@ def user_places(uid):
         'owner': user.to_public_dict(),
         'places': [p.to_card_dict(lang) for p in places]
     }), 200
+
+
+@api_v1.route('/users/favorites/<place_id>', methods=['POST'])
+@jwt_required()
+def add_favorite(place_id):
+    """Add place to favorites"""
+    user_id = get_jwt_identity()
+    user = User.query.get_or_404(user_id)
+    from app.models.place import Place
+    place = Place.query.get_or_404(place_id)
+
+    if place not in user.favorites:
+        user.favorites.append(place)
+        db.session.commit()
+    
+    return jsonify({'message': 'Added to favorites'}), 200
+
+
+@api_v1.route('/users/favorites/<place_id>', methods=['DELETE'])
+@jwt_required()
+def remove_favorite(place_id):
+    """Remove place from favorites"""
+    user_id = get_jwt_identity()
+    user = User.query.get_or_404(user_id)
+    from app.models.place import Place
+    place = Place.query.get_or_404(place_id)
+
+    if place in user.favorites:
+        user.favorites.remove(place)
+        db.session.commit()
+    
+    return jsonify({'message': 'Removed from favorites'}), 200
+
+
+@api_v1.route('/users/favorites', methods=['GET'])
+@jwt_required()
+def list_favorites():
+    """List user favorites"""
+    user_id = get_jwt_identity()
+    user = User.query.get_or_404(user_id)
+    lang = request.args.get('lang', 'ar')
+    
+    return jsonify({
+        'favorites': [p.to_card_dict(lang) for p in user.favorites]
+    }), 200

@@ -65,6 +65,11 @@ def admin_page():
     return render_template('admin.html', lang=lang)
 
 
+@frontend.route('/favorites')
+def favorites_page():
+    return render_template('favorites.html')
+
+
 # Serve uploads
 @frontend.route('/static/uploads/<filename>')
 def uploaded_file(filename):

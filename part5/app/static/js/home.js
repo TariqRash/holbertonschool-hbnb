@@ -204,14 +204,15 @@ function createPlaceCard(place, showMonthly = false) {
     const unit = showMonthly ? t('per_month') : t('per_night');
     const rating = place.average_rating ? place.average_rating.toFixed(1) : null;
     const reviewCount = place.review_count || 0;
+    const isFav = (typeof favoriteIds !== 'undefined' && favoriteIds.has(place.id));
 
     return `
         <a href="/place/${place.id}" class="place-card">
             <div class="place-card-image">
                 <img src="${image}" alt="${title}" loading="lazy">
                 ${place.is_featured ? '<span class="place-card-badge"><i data-lucide="crown" style="width:12px;height:12px;display:inline;"></i> Elite</span>' : ''}
-                <button class="place-card-fav" onclick="event.preventDefault();event.stopPropagation();">
-                    <i data-lucide="heart" style="width:18px;height:18px;"></i>
+                <button class="place-card-fav" onclick="event.preventDefault();event.stopPropagation();toggleFavorite('${place.id}', this)">
+                    <i data-lucide="heart" style="width:18px;height:18px;${isFav ? 'color:#e11d48;fill:currentColor;' : ''}"></i>
                 </button>
             </div>
             <div class="place-card-body">
@@ -244,10 +245,12 @@ function initMap() {
             zoom: CONFIG.MAP_ZOOM,
             mapTypeControl: false,
             streetViewControl: false,
-            fullscreenControl: false,
+            fullscreenControl: false, 
+            gestureHandling: 'cooperative',
             styles: [
                 { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-                { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+                { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+                { featureType: 'administrative', elementType: 'labels', stylers: [{ visibility: 'off' }] }
             ]
         });
         map._provider = 'google';
@@ -265,7 +268,6 @@ async function loadMapMarkers() {
     if (!map) return;
     try {
         const res = await api.get('/maps/places');
-        // API returns { markers: [...] }
         const data = res?.markers || (Array.isArray(res) ? res : []);
         if (!data.length) return;
 
@@ -280,40 +282,75 @@ async function loadMapMarkers() {
 
         const bounds = isGoogle ? new google.maps.LatLngBounds() : null;
 
+        // Create Custom Overlay Class for Google Maps (Price Pill)
+        let PriceOverlay;
+        if (isGoogle) {
+             PriceOverlay = class extends google.maps.OverlayView {
+                constructor(position, content, id) {
+                    super();
+                    this.position = position;
+                    this.content = content;
+                    this.id = id;
+                    this.div = null;
+                }
+                onAdd() {
+                    this.div = document.createElement('div');
+                    this.div.className = 'map-price-marker';
+                    this.div.innerHTML = this.content;
+                    // Add click listener to navigate to the place
+                    this.div.addEventListener('click', (e) => {
+                        e.stopPropagation(); // prevent map click
+                        window.location.href = `/place/${this.id}`;
+                    });
+                    const panes = this.getPanes();
+                    panes.overlayMouseTarget.appendChild(this.div);
+                }
+                draw() {
+                    const overlayProjection = this.getProjection();
+                    if (!overlayProjection) return;
+                    const pos = overlayProjection.fromLatLngToDivPixel(this.position);
+                    if (this.div) {
+                        this.div.style.left = (pos.x - 24) + 'px'; // Center horizontally
+                        this.div.style.top = (pos.y - 14) + 'px'; // Center vertically
+                    }
+                }
+                onRemove() {
+                    if (this.div) {
+                        this.div.parentNode.removeChild(this.div);
+                        this.div = null;
+                    }
+                }
+            };
+        }
+
         data.forEach(p => {
             if (!p.latitude || !p.longitude) return;
-            const price = p.price_per_night || p.price || 0;
+            // Handle different price field names from API
+            const rawPrice = p.price !== undefined ? p.price : (p.price_per_night !== undefined ? p.price_per_night : 0);
+            const formattedPrice = formatPrice(rawPrice);
 
             if (isGoogle) {
-                const marker = new google.maps.Marker({
-                    position: { lat: p.latitude, lng: p.longitude },
-                    map: map,
-                    title: p.title || '',
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        fillColor: '#6C63FF',
-                        fillOpacity: 0.9,
-                        strokeColor: '#fff',
-                        strokeWeight: 2,
-                        scale: 8
-                    }
-                });
-                const info = new google.maps.InfoWindow({
-                    content: `<div style="font-family:Cairo,sans-serif;padding:4px;">
-                        <strong>${p.title || ''}</strong><br>
-                        <span style="color:#6C63FF;font-weight:700;">${formatPrice(price)}</span> ${t('per_night')}
-                    </div>`
-                });
-                marker.addListener('click', () => info.open(map, marker));
-                markers.push(marker);
-                bounds.extend(marker.getPosition());
+                const latLng = new google.maps.LatLng(p.latitude, p.longitude);
+                const overlay = new PriceOverlay(latLng, formattedPrice, p.id);
+                overlay.setMap(map);
+                markers.push(overlay);
+                bounds.extend(latLng);
             } else {
-                const marker = L.marker([p.latitude, p.longitude])
+                // Leaflet custom divIcon
+                const icon = L.divIcon({
+                    className: 'map-price-marker-leaflet', // We'll add this CSS
+                    html: `<div>${formattedPrice}</div>`,
+                    iconSize: [60, 24],
+                    iconAnchor: [30, 12]
+                });
+                const marker = L.marker([p.latitude, p.longitude], { icon: icon })
                     .addTo(map)
-                    .bindPopup(`
-                        <strong>${p.title || ''}</strong><br>
-                        ${formatPrice(price)} ${t('per_night')}
-                    `);
+                    .bindPopup(`<strong>${p.title || 'Unit'}</strong><br>${formattedPrice}`);
+                
+                // Navigate on click for Leaflet too?
+                marker.on('click', () => {
+                   window.location.href = `/place/${p.id}`; 
+                });
                 markers.push(marker);
             }
         });
@@ -461,3 +498,6 @@ function doSearch() {
 function scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+/* ─── FAVORITES MANAGEMENT ─── */
+// Favorites handled by auth.js

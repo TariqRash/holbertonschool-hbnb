@@ -1548,6 +1548,54 @@ img[loading="lazy"][src] {
 .status-badge--danger { background: #fee2e2; color: #991b1b; }
 .status-badge--info { background: #dbeafe; color: #1e40af; }
 
+/* ═══════════════════ MAP MARKERS ═══════════════════ */
+.map-price-marker {
+    background: white;
+    padding: 6px 10px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(0,0,0,0.08);
+    position: absolute;
+    white-space: nowrap;
+    z-index: 100 !important;
+}
+
+.map-price-marker:hover {
+    transform: scale(1.1);
+    background: var(--text-primary);
+    color: white;
+    z-index: 999 !important;
+}
+
+.map-price-marker-leaflet {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-primary);
+    text-align: center;
+    border: 1px solid rgba(0,0,0,0.08);
+    white-space: nowrap;
+    padding: 2px 8px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.map-price-marker-leaflet:hover {
+    transform: scale(1.1);
+    background: var(--text-primary);
+    color: white;
+    z-index: 999 !important;
+}
+
 /* ═══════════════════ LOADING SPINNER ═══════════════════ */
 .loading-spinner {
     display: flex;

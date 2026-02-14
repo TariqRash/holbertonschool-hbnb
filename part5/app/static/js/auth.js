@@ -156,6 +156,7 @@ function updateAuthUI() {
             dropdown.className = 'dropdown hidden';
             dropdown.innerHTML = `
                 <a href="/bookings"><i data-lucide="calendar" class="icon-sm"></i> حجوزاتي</a>
+                <a href="/favorites"><i data-lucide="heart" class="icon-sm"></i> المفضلة</a>
                 ${Auth.isOwner() ? '<a href="/owner"><i data-lucide="home" class="icon-sm"></i> لوحة المالك</a>' : ''}
                 ${Auth.isAdmin() ? '<a href="/admin"><i data-lucide="shield" class="icon-sm"></i> لوحة الإدارة</a>' : ''}
                 <hr>
@@ -166,6 +167,9 @@ function updateAuthUI() {
             userMenu.appendChild(dropdown);
             if (typeof lucide !== 'undefined') lucide.createIcons();
         }
+
+        // Check for missing profile info
+        if (typeof checkOnboarding === 'function') checkOnboarding();
     } else {
         if (loginBtn) { loginBtn.style.display = ''; loginBtn.classList.remove('hidden'); }
         if (userMenu) { userMenu.style.display = 'none'; userMenu.classList.add('hidden'); }
@@ -189,6 +193,7 @@ document.addEventListener('click', e => {
     const menu = document.getElementById('userMenu');
     if (dd && menu && !menu.contains(e.target)) {
         dd.classList.remove('show');
+        dd.classList.add('hidden');
     }
 });
 
@@ -209,9 +214,176 @@ document.addEventListener('click', e => {
 })();
 
 // Init auth UI on page load
-document.addEventListener('DOMContentLoaded', updateAuthUI);
+document.addEventListener('DOMContentLoaded', () => {
+    updateAuthUI();
+    // Auto-load favorites when Auth loads
+    if (Auth.isLoggedIn()) loadFavorites();
+});
 
 // Global logout function (called from onclick in HTML)
 function logout() {
     Auth.logout();
 }
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+    const dd = document.getElementById('userDropdown');
+    const menu = document.getElementById('userMenu');
+    if (dd && menu && !menu.contains(e.target)) {
+        dd.classList.remove('show');
+        dd.classList.add('hidden');
+    }
+});
+
+// Onboarding Logic
+function injectOnboardingModal() {
+    if (document.getElementById('onboardingModal')) return;
+    const div = document.createElement('div');
+    div.id = 'onboardingModal';
+    div.className = 'modal';
+    div.innerHTML = `
+        <div class="modal__backdrop"></div>
+        <div class="modal__content" style="max-width:400px;">
+            <h2 style="margin-bottom:1rem;">إكمال الملف الشخصي</h2>
+            <p style="color:var(--text-secondary);margin-bottom:1.5rem;">يرجى إكمال بياناتك للاستمرار</p>
+            <div class="form-group">
+                <label>رقم الجوال Mobile Number</label>
+                <input type="tel" id="obPhone" class="form-input" placeholder="05xxxxxxxx" dir="ltr">
+            </div>
+            <div class="form-group">
+                <label>الجنس Gender</label>
+                <select id="obSex" class="form-input">
+                    <option value="">اختر / Select</option>
+                    <option value="male">ذكر — Male</option>
+                    <option value="female">أنثى — Female</option>
+                </select>
+            </div>
+            <button class="btn btn--primary btn--block" onclick="saveOnboarding()">حفظ / Save</button>
+        </div>
+    `;
+    document.body.appendChild(div);
+}
+
+async function checkOnboarding() {
+    if (!Auth.isLoggedIn()) return;
+    try {
+        // We need to fetch fresh user data including private fields (phone, sex)
+        // But /auth/me returns what user.to_dict() returns. 
+        // We updated user.to_dict() to include sex/phone if include_private=True.
+        // The Auth.getUser() relies on localStorage which might be stale.
+        // Let's rely on valid Session.
+        
+        const res = await api.get('/auth/me');
+        if (res && (!res.phone || !res.sex)) {
+            injectOnboardingModal();
+            document.getElementById('onboardingModal').classList.add('show');
+            document.getElementById('onboardingModal').style.display = 'flex';
+            
+            if (res.phone) document.getElementById('obPhone').value = res.phone;
+            if (res.sex) document.getElementById('obSex').value = res.sex;
+        }
+    } catch (e) { console.warn('Onboarding check failed', e); }
+}
+
+async function saveOnboarding() {
+    const phone = document.getElementById('obPhone').value;
+    const sex = document.getElementById('obSex').value;
+    if (!phone || !sex) return showToast('جميع الحقول مطلوبة', 'error');
+    
+    // Basic Saudi phone validation
+    if (!/^05\d{8}$/.test(phone) && !/^\+9665\d{8}$/.test(phone)) {
+         return showToast('رقم الجوال غير صحيح (05xxxxxxxx)', 'error');
+    }
+
+    try {
+        const res = await api.put('/auth/me', { phone, sex });
+        if (res.error) throw res;
+        
+        showToast('تم تحديث البيانات', 'success');
+        document.getElementById('onboardingModal').style.display = 'none';
+        document.getElementById('onboardingModal').classList.remove('show');
+        
+        // Update local storage
+        const currentUser = Auth.getUser();
+        Auth.login(Auth.getToken(), { ...currentUser, phone, sex }, res.refresh_token);
+    } catch (e) {
+        showToast(e.error || 'فشل التحديث', 'error');
+    }
+}
+
+/* ═══════════════════ FAVORITES ═══════════════════ */
+let favoriteIds = new Set();
+let favoritesLoaded = false;
+
+async function loadFavorites() {
+    if (!Auth.isLoggedIn()) return;
+    if (favoritesLoaded) return; // unnecessary call
+    try {
+        const res = await api.get('/users/favorites');
+        if (res && res.favorites) {
+            favoriteIds = new Set(res.favorites.map(p => p.id));
+            favoritesLoaded = true;
+            updateFavoriteIcons();
+        }
+    } catch (e) {
+        console.warn('Failed to load favorites', e);
+    }
+}
+
+function updateFavoriteIcons() {
+    document.querySelectorAll('.place-card').forEach(card => {
+        const href = card.getAttribute('href');
+        if (!href) return;
+        const id = href.split('/').pop();
+        const btn = card.querySelector('.place-card-fav i');
+        if (!btn) return;
+        
+        if (favoriteIds.has(id)) {
+            btn.setAttribute('fill', 'currentColor');
+            btn.style.color = '#e11d48';
+        } else {
+            btn.setAttribute('fill', 'none');
+            btn.style.color = '';
+        }
+    });
+}
+
+window.toggleFavorite = async function(id, btn) {
+    if (!Auth.isLoggedIn()) {
+        showToast('سجل الدخول لإضافة للمفضلة', 'info');
+        // window.location.href = '/login'; // Optional: Redirect or just toast
+        return;
+    }
+    
+    // Optimistic UI update
+    const isFav = favoriteIds.has(id);
+    const icon = btn.querySelector('i');
+    
+    if (isFav) {
+        favoriteIds.delete(id);
+        icon.setAttribute('fill', 'none');
+        icon.style.color = '';
+    } else {
+        favoriteIds.add(id);
+        icon.setAttribute('fill', 'currentColor');
+        icon.style.color = '#e11d48';
+    }
+
+    try {
+        const method = isFav ? 'DELETE' : 'POST';
+        await api.request(method, `/users/favorites/${id}`);
+        showToast(isFav ? 'تم الحذف من المفضلة' : 'تم الإضافة للمفضلة', 'success');
+    } catch (e) {
+        // Revert on error
+        if (isFav) {
+            favoriteIds.add(id);
+            icon.setAttribute('fill', 'currentColor');
+            icon.style.color = '#e11d48';
+        } else {
+            favoriteIds.delete(id);
+            icon.setAttribute('fill', 'none');
+            icon.style.color = '';
+        }
+        showToast('فشل تحديث المفضلة', 'error');
+    }
+};

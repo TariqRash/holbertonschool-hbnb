@@ -148,6 +148,7 @@
     let currentTrip = '';
     let currentPage = 1;
     let filtersReady = false;
+    let currentPlaces = []; // To store latest search results for map toggle
 
     document.addEventListener('DOMContentLoaded', async () => {
         applyTranslations();
@@ -322,12 +323,13 @@
 
         const places = Array.isArray(data) ? data : (data.places || []);
         const total = data.total || places.length;
+        currentPlaces = places; // Save for map toggle
 
         document.getElementById('resultsCount').textContent = `${total} نتيجة`;
         grid.innerHTML = places.map(p => createSearchCard(p)).join('');
 
-        // Map markers
-        updateSearchMap(places);
+        // Map markers (only if map is visible)
+        if (searchMap) updateSearchMap(places);
 
         lucide.createIcons();
     }
@@ -428,9 +430,17 @@
         }
         if (searchMap) {
             if (searchMap._provider === 'google') {
-                setTimeout(() => google.maps.event.trigger(searchMap, 'resize'), 200);
+                setTimeout(() => {
+                    google.maps.event.trigger(searchMap, 'resize');
+                    searchMap.setZoom(CONFIG.MAP_ZOOM);
+                    searchMap.setCenter({ lat: CONFIG.MAP_CENTER[0], lng: CONFIG.MAP_CENTER[1] });
+                    updateSearchMap(currentPlaces); // Re-populate with latest results
+                }, 200);
             } else {
-                setTimeout(() => searchMap.invalidateSize(), 200);
+                setTimeout(() => {
+                    searchMap.invalidateSize();
+                    updateSearchMap(currentPlaces); // Re-populate
+                }, 200);
             }
         }
     }
@@ -448,37 +458,85 @@
 
         const bounds = isGoogle ? new google.maps.LatLngBounds() : null;
 
+        // Custom Overlay for Google Maps (Price Pill)
+        if (isGoogle && !searchMap._PriceOverlayClass) {
+             searchMap._PriceOverlayClass = class extends google.maps.OverlayView {
+                constructor(position, content, id) {
+                    super();
+                    this.position = position;
+                    this.content = content;
+                    this.id = id;
+                    this.div = null;
+                }
+                onAdd() {
+                    this.div = document.createElement('div');
+                    this.div.className = 'map-price-marker';
+                    this.div.innerHTML = this.content;
+                    this.div.title = "Click to view property";
+                    // Add click listener to navigate to the place
+                    this.div.addEventListener('click', (e) => {
+                        e.stopPropagation(); // prevent map click
+                        window.location.href = `/place/${this.id}`;
+                    });
+                    const panes = this.getPanes();
+                    panes.overlayMouseTarget.appendChild(this.div);
+                }
+                draw() {
+                    const overlayProjection = this.getProjection();
+                    if (!overlayProjection) return;
+                    const pos = overlayProjection.fromLatLngToDivPixel(this.position);
+                    if (this.div) {
+                        this.div.style.left = (pos.x) + 'px';
+                        this.div.style.top = (pos.y) + 'px';
+                    }
+                }
+                onRemove() {
+                    if (this.div) {
+                        this.div.parentNode.removeChild(this.div);
+                        this.div = null;
+                    }
+                }
+            };
+        }
+
         places.forEach(p => {
             if (!p.latitude || !p.longitude) return;
+            const price = p.price_per_night || p.price || 0;
+            const formattedPrice = formatPrice(price);
+
             if (isGoogle) {
-                const marker = new google.maps.Marker({
-                    position: { lat: p.latitude, lng: p.longitude },
-                    map: searchMap,
-                    title: p.title_en || p.title_ar || '',
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        fillColor: '#6C63FF',
-                        fillOpacity: 0.9,
-                        strokeColor: '#fff',
-                        strokeWeight: 2,
-                        scale: 8
-                    }
-                });
-                const info = new google.maps.InfoWindow({
-                    content: `<div style="font-family:Cairo,sans-serif;padding:4px;">
-                        <strong>${p.title_en || p.title_ar}</strong><br>
-                        <span style="color:#6C63FF;font-weight:700;">${formatPrice(p.price_per_night)}</span>
-                    </div>`
-                });
-                marker.addListener('click', () => info.open(searchMap, marker));
-                searchMarkers.push(marker);
-                bounds.extend(marker.getPosition());
+                const latLng = new google.maps.LatLng(p.latitude, p.longitude);
+                if (searchMap._PriceOverlayClass) {
+                    const overlay = new searchMap._PriceOverlayClass(latLng, formattedPrice, p.id);
+                    overlay.setMap(searchMap);
+                    searchMarkers.push(overlay);
+                } else {
+                    // Fallback
+                    const marker = new google.maps.Marker({
+                        position: latLng,
+                        map: searchMap,
+                        title: formattedPrice
+                    });
+                    searchMarkers.push(marker);
+                }
+                bounds.extend(latLng);
             } else {
-                const m = L.marker([p.latitude, p.longitude]).addTo(searchMap)
-                    .bindPopup(`<strong>${p.title_en || p.title_ar}</strong><br>${formatPrice(p.price_per_night)}`);
+                // Leaflet
+                const icon = L.divIcon({
+                    className: 'map-price-marker-leaflet',
+                    html: `<div>${formattedPrice}</div>`,
+                    iconSize: [60, 24],
+                    iconAnchor: [30, 12]
+                });
+                const m = L.marker([p.latitude, p.longitude], { icon: icon })
+                    .addTo(searchMap)
+                    .bindPopup(`<strong>${p.title_en || p.title || p.title_ar}</strong><br>${formattedPrice}`);
+                
+                m.on('click', () => window.location.href = `/place/${p.id}`);
                 searchMarkers.push(m);
             }
         });
+
         if (searchMarkers.length) {
             if (isGoogle) {
                 searchMap.fitBounds(bounds, { padding: 50 });

@@ -402,6 +402,7 @@ async function loadBookings(page = 1) {
                 <td>
                     <div class="action-btns">
                         ${b.status === 'pending' ? `<button class="action-btn action-btn--approve" onclick="updateBookingStatus('${b.id}', 'confirmed')"><i data-lucide="check"></i></button>` : ''}
+                        ${b.status === 'confirmed' ? `<button class="action-btn action-btn--approve" title="Mark Completed" onclick="updateBookingStatus('${b.id}', 'completed')"><i data-lucide="check-circle"></i></button>` : ''}
                         <button class="action-btn action-btn--delete" onclick="updateBookingStatus('${b.id}', 'cancelled')"><i data-lucide="x"></i></button>
                     </div>
                 </td>

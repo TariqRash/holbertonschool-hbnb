@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المفضلة — Rizi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/home.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .favorites-page { padding: 40px 0; min-height: 60vh; }
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 24px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-tertiary);
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-container">
+        <a href="/" class="logo">
+            <img src="/static/images/logo.png" alt="Rizi" class="logo-img">
+            <span class="logo-text">Rizi</span>
+        </a>
+        <div class="nav-actions">
+            <a href="/" class="btn btn--text">الرئيسية</a>
+            <div id="userMenu" class="nav__user" style="display:none" onclick="toggleUserDropdown()">
+                <img id="userAvatar" src="" alt="" class="nav__user-avatar" style="width:32px;height:32px;border-radius:50%;">
+                <span id="userName"></span>
+            </div>
+            <a href="/login" id="loginBtn" class="btn btn--primary btn--sm">تسجيل الدخول</a>
+        </div>
+    </div>
+</nav>
+
+<main class="favorites-page">
+    <div class="container">
+        <h1>المفضلة <small style="font-size:1rem;color:var(--text-tertiary)" id="favCount">(0)</small></h1>
+
+        <div id="favoritesGrid" class="favorites-grid">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+</main>
+
+<script src="/static/js/config.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/auth.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        applyTranslations();
+        if (!Auth.isLoggedIn()) return window.location.href = '/login';
+        loadMyFavorites();
+    });
+
+    async function loadMyFavorites() {
+        try {
+            const res = await api.get('/users/favorites');
+            if (res && res.favorites) {
+                renderFavorites(res.favorites);
+            }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('favoritesGrid').innerHTML = '<p class="error">فشل تحميل المفضلة</p>';
+        }
+    }
+
+    function renderFavorites(places) {
+        const grid = document.getElementById('favoritesGrid');
+        const count = document.getElementById('favCount');
+        count.textContent = `(${places.length})`;
+
+        if (!places.length) {
+            grid.innerHTML = `
+                <div class="empty-state" style="grid-column:1/-1">
+                    <i data-lucide="heart-off" style="width:48px;height:48px;margin-bottom:16px;opacity:0.5"></i>
+                    <p>قائمة المفضلة فارغة</p>
+                    <a href="/" class="btn btn--primary" style="margin-top:16px;">تصفح الوحدات</a>
+                </div>
+            `;
+            lucide.createIcons();
+            return;
+        }
+
+        grid.innerHTML = places.map(p => createFavoriteCard(p)).join('');
+        lucide.createIcons();
+    }
+
+    function createFavoriteCard(place) {
+        const lang = getLang();
+        const title = lang === 'ar' ? (place.title_ar || place.title_en) : (place.title_en || place.title_ar);
+        const image = place.image_url || place.cover_image || CONFIG.PLACEHOLDER_IMAGE;
+        
+        // Always filled heart because it's in favorites list
+        return `
+            <a href="/place/${place.id}" class="place-card">
+                <div class="place-card-image">
+                    <img src="${image}" alt="${title}" loading="lazy">
+                    <button class="place-card-fav" onclick="event.preventDefault();event.stopPropagation();toggleFavorite('${place.id}', this)">
+                        <i data-lucide="heart" style="width:18px;height:18px;color:#e11d48;fill:currentColor"></i>
+                    </button>
+                </div>
+                <div class="place-card-body">
+                    <div class="place-card-title">${title}</div>
+                    <div class="place-card-info">
+                        ${place.bedrooms ? `<span><i data-lucide="bed-double" class="icon-sm"></i> ${place.bedrooms}</span>` : ''}
+                        ${place.max_guests ? `<span><i data-lucide="users" class="icon-sm"></i> ${place.max_guests}</span>` : ''}
+                    </div>
+                </div>
+                <div class="place-card-footer">
+                    <span class="place-card-price">${formatPrice(place.price_per_night)} <small>/ الليلة</small></span>
+                    <span class="place-card-rating">
+                        ${place.average_rating ? `★ ${place.average_rating.toFixed(1)}` : 'جديد'}
+                    </span>
+                </div>
+            </a>
+        `;
+    }
+</script>
+</body>
+</html>

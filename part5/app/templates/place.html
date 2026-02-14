@@ -404,10 +404,10 @@
 
         // Show price summary
         document.getElementById('bookingSummary').style.display = 'block';
-        document.getElementById('summaryNights').textContent = `${res.total_nights} ليلة × ${formatPrice(res.price_per_night)}`;
+        document.getElementById('summaryNights').textContent = `${res.nights} ليلة × ${formatPrice(res.price_per_night)}`;
         document.getElementById('summarySubtotal').textContent = formatPrice(res.subtotal);
         document.getElementById('summaryFee').textContent = formatPrice(res.service_fee);
-        document.getElementById('summaryTotal').textContent = formatPrice(res.total_price);
+        document.getElementById('summaryTotal').textContent = formatPrice(res.total);
 
         // Change button to confirm
         const btn = document.getElementById('bookBtn');

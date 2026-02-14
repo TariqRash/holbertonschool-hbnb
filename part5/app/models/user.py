@@ -7,6 +7,12 @@ from app import db
 from app.models.base_model import BaseModel
 import bcrypt
 
+# Many-to-many: User <-> Favorite Places
+user_favorites = db.Table('user_favorites',
+    db.Column('user_id', db.String(36), db.ForeignKey('users.id'), primary_key=True),
+    db.Column('place_id', db.String(36), db.ForeignKey('places.id'), primary_key=True)
+)
+
 
 class User(BaseModel):
     """User model — guests, owners, and admins"""
@@ -19,6 +25,8 @@ class User(BaseModel):
     phone = db.Column(db.String(20), nullable=True)
     avatar_url = db.Column(db.String(500), nullable=True)
     bio = db.Column(db.Text, nullable=True)
+    phone = db.Column(db.String(20), nullable=True) # Mobile
+    sex = db.Column(db.String(10), nullable=True)   # male, female
 
     # Auth
     password_hash = db.Column(db.String(255), nullable=True)  # Optional (magic link users may not have one)
@@ -27,6 +35,9 @@ class User(BaseModel):
 
     # Role: guest, owner, admin
     role = db.Column(db.String(20), default='guest', nullable=False)
+
+    # Favorites
+    favorites = db.relationship('Place', secondary=user_favorites, backref='favorited_by', lazy='dynamic')
 
     # Localization
     preferred_language = db.Column(db.String(5), default='ar')
@@ -74,6 +85,7 @@ class User(BaseModel):
             'full_name': self.full_name,
             'email': self.email if include_private else None,
             'phone': self.phone if include_private else None,
+            'sex': self.sex if include_private else None,
             'avatar_url': self.avatar_url,
             'bio': self.bio,
             'role': self.role,
@@ -84,6 +96,7 @@ class User(BaseModel):
         if not include_private:
             data.pop('email', None)
             data.pop('phone', None)
+            data.pop('sex', None)
         return data
 
     def to_public_dict(self):
