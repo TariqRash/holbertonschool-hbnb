@@ -338,7 +338,7 @@ def update_profile():
         return jsonify({'error': 'User not found'}), 404
 
     data = request.get_json()
-    allowed = ['first_name', 'last_name', 'phone', 'bio', 'avatar_url', 'preferred_language']
+    allowed = ['first_name', 'last_name', 'phone', 'bio', 'avatar_url', 'preferred_language', 'sex']
 
     for field in allowed:
         if field in data:

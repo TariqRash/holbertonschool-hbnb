@@ -144,6 +144,19 @@ const api = {
         });
     },
 
+    /** Generic request method — for dynamic HTTP methods (e.g. favorites toggle) */
+    async request(method, endpoint, data = null) {
+        const headers = {};
+        const token = localStorage.getItem('hbnb_token');
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        if (data) headers['Content-Type'] = 'application/json';
+
+        const options = { method, headers };
+        if (data) options.body = JSON.stringify(data);
+
+        return api._fetch(CONFIG.API_URL + endpoint, options);
+    },
+
     async upload(endpoint, formData) {
         const headers = {};
         const token = localStorage.getItem('hbnb_token');
@@ -227,11 +240,12 @@ window.addEventListener('scroll', () => {
  * Format currency
  */
 function formatPrice(amount, currency = 'SAR') {
+    if (amount === null || amount === undefined || isNaN(amount)) amount = 0;
     const lang = getLang();
     if (lang === 'ar') {
-        return `${amount.toLocaleString('ar-SA')} ر.س`;
+        return `${Number(amount).toLocaleString('ar-SA')} ر.س`;
     }
-    return `${currency} ${amount.toLocaleString('en-US')}`;
+    return `${currency} ${Number(amount).toLocaleString('en-US')}`;
 }
 
 /**

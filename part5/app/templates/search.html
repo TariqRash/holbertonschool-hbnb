@@ -344,14 +344,15 @@
         const image = p.image_url || p.cover_image || CONFIG.PLACEHOLDER_IMAGE;
         const rating = p.average_rating ? p.average_rating.toFixed(1) : null;
         const reviewCount = p.review_count || 0;
+        const isFav = (typeof favoriteIds !== 'undefined' && favoriteIds.has(p.id));
 
         return `
             <a href="/place/${p.id}" class="place-card">
                 <div class="place-card-image">
                     <img src="${image}" alt="${title}" loading="lazy">
                     ${p.is_featured ? '<span class="place-card-badge"><i data-lucide="crown" style="width:12px;height:12px;display:inline;"></i> Elite</span>' : ''}
-                    <button class="place-card-fav" onclick="event.preventDefault();event.stopPropagation();">
-                        <i data-lucide="heart" style="width:18px;height:18px;"></i>
+                    <button class="place-card-fav" onclick="event.preventDefault();event.stopPropagation();toggleFavorite('${p.id}', this)">
+                        <i data-lucide="heart" style="width:18px;height:18px;${isFav ? 'color:#e11d48;fill:currentColor;' : ''}"></i>
                     </button>
                 </div>
                 <div class="place-card-body">

@@ -392,43 +392,86 @@
         const checkOut = document.getElementById('bookCheckOut').value;
         if (!checkIn || !checkOut) return showToast('اختر التواريخ', 'error');
 
-        const res = await api.post('/bookings/check-availability', {
-            place_id: placeId,
-            check_in: checkIn,
-            check_out: checkOut,
-            adults: guestCount
-        });
+        if (new Date(checkIn) >= new Date(checkOut)) {
+            return showToast('تاريخ المغادرة يجب أن يكون بعد تاريخ الوصول', 'error');
+        }
 
-        if (res.error) return showToast(res.error, 'error');
-        if (!res.available) return showToast('غير متاح في هذه التواريخ', 'error');
-
-        // Show price summary
-        document.getElementById('bookingSummary').style.display = 'block';
-        document.getElementById('summaryNights').textContent = `${res.nights} ليلة × ${formatPrice(res.price_per_night)}`;
-        document.getElementById('summarySubtotal').textContent = formatPrice(res.subtotal);
-        document.getElementById('summaryFee').textContent = formatPrice(res.service_fee);
-        document.getElementById('summaryTotal').textContent = formatPrice(res.total);
-
-        // Change button to confirm
         const btn = document.getElementById('bookBtn');
-        btn.textContent = t('confirm_booking');
-        btn.onclick = createBooking;
+        btn.disabled = true;
+        btn.textContent = 'جاري التحقق...';
+
+        try {
+            const res = await api.post('/bookings/check-availability', {
+                place_id: placeId,
+                check_in: checkIn,
+                check_out: checkOut,
+                adults: guestCount
+            });
+
+            if (res.error) {
+                btn.disabled = false;
+                btn.textContent = t('book_now');
+                return showToast(res.error, 'error');
+            }
+            if (!res.available) {
+                btn.disabled = false;
+                btn.textContent = t('book_now');
+                return showToast('غير متاح في هذه التواريخ', 'error');
+            }
+
+            // Show price summary
+            document.getElementById('bookingSummary').style.display = 'block';
+            document.getElementById('summaryNights').textContent = `${res.nights} ليلة × ${formatPrice(res.price_per_night)}`;
+            document.getElementById('summarySubtotal').textContent = formatPrice(res.subtotal);
+            document.getElementById('summaryFee').textContent = formatPrice(res.service_fee);
+            document.getElementById('summaryTotal').textContent = formatPrice(res.total);
+
+            // Change button to confirm
+            btn.disabled = false;
+            btn.textContent = t('confirm_booking');
+            btn.onclick = createBooking;
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = t('book_now');
+            showToast(e.error || 'فشل التحقق من التوفر', 'error');
+        }
     }
 
     async function createBooking() {
         const checkIn = document.getElementById('bookCheckIn').value;
         const checkOut = document.getElementById('bookCheckOut').value;
 
-        const res = await api.post('/bookings', {
-            place_id: placeId,
-            check_in: checkIn,
-            check_out: checkOut,
-            adults: guestCount
-        });
+        const btn = document.getElementById('bookBtn');
+        btn.disabled = true;
+        btn.textContent = 'جاري الحجز...';
 
-        if (res.error) return showToast(res.error, 'error');
-        showToast('تم الحجز بنجاح!', 'success');
-        setTimeout(() => window.location.href = `/booking/${res.id}`, 1000);
+        try {
+            const res = await api.post('/bookings', {
+                place_id: placeId,
+                check_in: checkIn,
+                check_out: checkOut,
+                adults: guestCount
+            });
+
+            if (res.error) {
+                btn.disabled = false;
+                btn.textContent = t('confirm_booking');
+                return showToast(res.error_ar || res.error, 'error');
+            }
+
+            const bookingId = res.booking?.id || res.id;
+            if (!bookingId) {
+                showToast('تم الحجز لكن لم يتم العثور على رقم الحجز', 'warning');
+                return setTimeout(() => window.location.href = '/bookings', 1500);
+            }
+
+            showToast('تم الحجز بنجاح!', 'success');
+            setTimeout(() => window.location.href = `/booking/${bookingId}`, 1000);
+        } catch (e) {
+            btn.disabled = false;
+            btn.textContent = t('confirm_booking');
+            showToast(e.error_ar || e.error || 'حدث خطأ أثناء الحجز', 'error');
+        }
     }
 
     // Review modal

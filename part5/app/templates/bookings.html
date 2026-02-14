@@ -60,7 +60,8 @@
     });
 
     async function loadBookings() {
-        allBookings = await api.get('/bookings') || [];
+        const res = await api.get('/bookings');
+        allBookings = res?.bookings || (Array.isArray(res) ? res : []);
         renderBookings(allBookings);
     }
 

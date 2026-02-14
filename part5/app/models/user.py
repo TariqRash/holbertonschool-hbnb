@@ -25,7 +25,6 @@ class User(BaseModel):
     phone = db.Column(db.String(20), nullable=True)
     avatar_url = db.Column(db.String(500), nullable=True)
     bio = db.Column(db.Text, nullable=True)
-    phone = db.Column(db.String(20), nullable=True) # Mobile
     sex = db.Column(db.String(10), nullable=True)   # male, female
 
     # Auth
