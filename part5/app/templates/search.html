@@ -147,10 +147,12 @@
     let searchMarkers = [];
     let currentTrip = '';
     let currentPage = 1;
+    let filtersReady = false;
 
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         applyTranslations();
-        loadFilters();
+        await loadFilters();
+        filtersReady = true;
         readURLParams();
         applyFilters();
     });
@@ -161,28 +163,32 @@
         const isAr = lang === 'ar';
 
         // Cities
-        const cities = await api.get('/cities');
-        const citySelect = document.getElementById('filterCity');
-        if (cities?.length) {
-            cities.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.textContent = isAr ? c.name_ar : c.name_en;
-                citySelect.appendChild(opt);
-            });
-        }
+        try {
+            const cities = await api.get('/cities');
+            const citySelect = document.getElementById('filterCity');
+            if (cities?.length) {
+                cities.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = isAr ? (c.name_ar || c.name_en) : (c.name_en || c.name_ar);
+                    citySelect.appendChild(opt);
+                });
+            }
+        } catch(e) { console.warn('Cities load failed', e); }
 
         // Property Types
-        const types = await api.get('/property-types');
-        const typeSelect = document.getElementById('filterType');
-        if (types?.length) {
-            types.forEach(tp => {
-                const opt = document.createElement('option');
-                opt.value = tp.id;
-                opt.textContent = isAr ? tp.name_ar : tp.name_en;
-                typeSelect.appendChild(opt);
-            });
-        }
+        try {
+            const types = await api.get('/property-types');
+            const typeSelect = document.getElementById('filterType');
+            if (types?.length) {
+                types.forEach(tp => {
+                    const opt = document.createElement('option');
+                    opt.value = tp.id;
+                    opt.textContent = isAr ? (tp.name_ar || tp.name_en) : (tp.name_en || tp.name_ar);
+                    typeSelect.appendChild(opt);
+                });
+            }
+        } catch(e) { console.warn('Types load failed', e); }
 
         // Set min date
         const today = new Date().toISOString().split('T')[0];
@@ -192,14 +198,43 @@
 
     function readURLParams() {
         const params = new URLSearchParams(window.location.search);
-        if (params.get('city')) document.getElementById('filterCity').value = params.get('city');
-        if (params.get('type')) document.getElementById('filterType').value = params.get('type');
+
+        // city param — the home page sends city=<UUID>
+        const cityParam = params.get('city') || params.get('city_id');
+        if (cityParam) document.getElementById('filterCity').value = cityParam;
+
+        // property type
+        const typeParam = params.get('type') || params.get('property_type_id');
+        if (typeParam) document.getElementById('filterType').value = typeParam;
+
         if (params.get('check_in')) document.getElementById('filterCheckIn').value = params.get('check_in');
         if (params.get('check_out')) document.getElementById('filterCheckOut').value = params.get('check_out');
         if (params.get('guests')) document.getElementById('filterGuests').value = params.get('guests');
+
+        // text search
+        const q = params.get('q');
+        if (q) document.getElementById('navSearchInput').value = q;
+
+        // price
+        if (params.get('min_price')) document.getElementById('filterPriceMin').value = params.get('min_price');
+        if (params.get('max_price')) document.getElementById('filterPriceMax').value = params.get('max_price');
+
+        // sort
+        if (params.get('sort')) document.getElementById('sortBy').value = params.get('sort');
+
+        // trip_type
         if (params.get('trip_type')) {
             currentTrip = params.get('trip_type');
             document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.trip === currentTrip));
+        }
+
+        // Update title with city name if set
+        const citySelect = document.getElementById('filterCity');
+        if (citySelect.value) {
+            const selectedOption = citySelect.options[citySelect.selectedIndex];
+            if (selectedOption && selectedOption.text !== 'الكل') {
+                document.getElementById('resultsTitle').textContent = `نتائج البحث — ${selectedOption.text}`;
+            }
         }
     }
 
@@ -221,16 +256,43 @@
         if (priceMax) params.set('max_price', priceMax);
         if (checkIn) params.set('check_in', checkIn);
         if (checkOut) params.set('check_out', checkOut);
-        if (guests) params.set('guests', guests);
+        if (guests && guests !== '1') params.set('guests', guests);
         if (currentTrip) params.set('trip_type', currentTrip);
         if (sort) {
-            // Map frontend sort values to API sort values
             const sortMap = { price_asc: 'price_low', price_desc: 'price_high', rating: 'rating', newest: 'newest' };
             params.set('sort', sortMap[sort] || sort);
         }
         if (search) params.set('q', search);
         params.set('page', currentPage);
         params.set('lang', getLang());
+
+        // Update URL without reload so it's bookmarkable/shareable
+        const urlParams = new URLSearchParams();
+        if (city) urlParams.set('city', city);
+        if (type) urlParams.set('type', type);
+        if (priceMin) urlParams.set('min_price', priceMin);
+        if (priceMax) urlParams.set('max_price', priceMax);
+        if (checkIn) urlParams.set('check_in', checkIn);
+        if (checkOut) urlParams.set('check_out', checkOut);
+        if (guests && guests !== '1') urlParams.set('guests', guests);
+        if (currentTrip) urlParams.set('trip_type', currentTrip);
+        if (search) urlParams.set('q', search);
+        if (sort) urlParams.set('sort', sort);
+        const newUrl = '/search' + (urlParams.toString() ? '?' + urlParams.toString() : '');
+        history.replaceState(null, '', newUrl);
+
+        // Update title
+        const citySelect = document.getElementById('filterCity');
+        if (citySelect.value) {
+            const selectedOption = citySelect.options[citySelect.selectedIndex];
+            if (selectedOption && selectedOption.text !== 'الكل') {
+                document.getElementById('resultsTitle').textContent = `نتائج البحث — ${selectedOption.text}`;
+            } else {
+                document.getElementById('resultsTitle').textContent = 'نتائج البحث';
+            }
+        } else {
+            document.getElementById('resultsTitle').textContent = 'نتائج البحث';
+        }
 
         const grid = document.getElementById('placesGrid');
         grid.innerHTML = Array(6).fill('').map(() => `

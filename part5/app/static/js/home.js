@@ -264,8 +264,10 @@ function initMap() {
 async function loadMapMarkers() {
     if (!map) return;
     try {
-        const data = await api.get('/maps/places');
-        if (!data || !data.length) return;
+        const res = await api.get('/maps/places');
+        // API returns { markers: [...] }
+        const data = res?.markers || (Array.isArray(res) ? res : []);
+        if (!data.length) return;
 
         const isGoogle = map._provider === 'google';
 
@@ -280,6 +282,7 @@ async function loadMapMarkers() {
 
         data.forEach(p => {
             if (!p.latitude || !p.longitude) return;
+            const price = p.price_per_night || p.price || 0;
 
             if (isGoogle) {
                 const marker = new google.maps.Marker({
@@ -298,7 +301,7 @@ async function loadMapMarkers() {
                 const info = new google.maps.InfoWindow({
                     content: `<div style="font-family:Cairo,sans-serif;padding:4px;">
                         <strong>${p.title || ''}</strong><br>
-                        <span style="color:#6C63FF;font-weight:700;">${formatPrice(p.price_per_night)}</span> ${t('per_night')}
+                        <span style="color:#6C63FF;font-weight:700;">${formatPrice(price)}</span> ${t('per_night')}
                     </div>`
                 });
                 marker.addListener('click', () => info.open(map, marker));
@@ -309,7 +312,7 @@ async function loadMapMarkers() {
                     .addTo(map)
                     .bindPopup(`
                         <strong>${p.title || ''}</strong><br>
-                        ${formatPrice(p.price_per_night)} ${t('per_night')}
+                        ${formatPrice(price)} ${t('per_night')}
                     `);
                 markers.push(marker);
             }

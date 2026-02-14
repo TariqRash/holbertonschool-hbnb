@@ -120,24 +120,55 @@ const Auth = {
 
 /**
  * Update navbar based on auth state
+ * Works with both home page (class="hidden") and inner pages (style.display)
  */
 function updateAuthUI() {
     const loginBtn = document.getElementById('loginBtn');
     const userMenu = document.getElementById('userMenu');
     const userAvatar = document.getElementById('userAvatar');
     const userName = document.getElementById('userName');
+    const ownerLink = document.getElementById('ownerLink');
 
     if (Auth.isLoggedIn()) {
         const user = Auth.getUser();
-        if (loginBtn) loginBtn.style.display = 'none';
-        if (userMenu) userMenu.style.display = 'flex';
+        if (loginBtn) { loginBtn.style.display = 'none'; loginBtn.classList.add('hidden'); }
+        if (userMenu) { userMenu.style.display = 'flex'; userMenu.classList.remove('hidden'); }
         if (userName) userName.textContent = user?.first_name || 'User';
-        if (userAvatar && user?.avatar_url) {
-            userAvatar.src = user.avatar_url;
+        if (userAvatar) {
+            if (user?.avatar_url) {
+                userAvatar.src = user.avatar_url;
+            } else {
+                // Generate initials avatar
+                const name = user?.first_name || 'U';
+                userAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6C63FF&color=fff&size=36&bold=true`;
+            }
+        }
+        // Show owner link if owner/admin
+        if (ownerLink) {
+            if (Auth.isOwner()) { ownerLink.style.display = ''; ownerLink.classList.remove('hidden'); }
+            else { ownerLink.style.display = 'none'; ownerLink.classList.add('hidden'); }
+        }
+
+        // If the dropdown doesn't exist in inner pages, inject it
+        if (userMenu && !document.getElementById('userDropdown')) {
+            const dropdown = document.createElement('div');
+            dropdown.id = 'userDropdown';
+            dropdown.className = 'dropdown hidden';
+            dropdown.innerHTML = `
+                <a href="/bookings"><i data-lucide="calendar" class="icon-sm"></i> حجوزاتي</a>
+                ${Auth.isOwner() ? '<a href="/owner"><i data-lucide="home" class="icon-sm"></i> لوحة المالك</a>' : ''}
+                ${Auth.isAdmin() ? '<a href="/admin"><i data-lucide="shield" class="icon-sm"></i> لوحة الإدارة</a>' : ''}
+                <hr>
+                <button onclick="Auth.logout()"><i data-lucide="log-out" class="icon-sm"></i> تسجيل الخروج</button>
+            `;
+            userMenu.style.position = 'relative';
+            userMenu.style.cursor = 'pointer';
+            userMenu.appendChild(dropdown);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
     } else {
-        if (loginBtn) loginBtn.style.display = 'flex';
-        if (userMenu) userMenu.style.display = 'none';
+        if (loginBtn) { loginBtn.style.display = ''; loginBtn.classList.remove('hidden'); }
+        if (userMenu) { userMenu.style.display = 'none'; userMenu.classList.add('hidden'); }
     }
 }
 
@@ -146,7 +177,10 @@ function updateAuthUI() {
  */
 function toggleUserDropdown() {
     const dd = document.getElementById('userDropdown');
-    if (dd) dd.classList.toggle('show');
+    if (dd) {
+        dd.classList.toggle('hidden');
+        dd.classList.toggle('show');
+    }
 }
 
 // Close dropdown on outside click
@@ -176,3 +210,8 @@ document.addEventListener('click', e => {
 
 // Init auth UI on page load
 document.addEventListener('DOMContentLoaded', updateAuthUI);
+
+// Global logout function (called from onclick in HTML)
+function logout() {
+    Auth.logout();
+}

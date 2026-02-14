@@ -17,7 +17,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Resend Email
-    RESEND_API_KEY = os.getenv('RESEND_API_KEY', 're_RocPnXPz_KvD2cKxPhinaRNTP69JuxnaC')
+    RESEND_API_KEY = os.getenv('RESEND_API_KEY', '')
     RESEND_FROM_EMAIL = os.getenv('RESEND_FROM_EMAIL', 'Rizi <noreply@notifications.rizi.app>')
 
     # Offline Payment — Bank Details
@@ -26,7 +26,7 @@ class Config:
     ACCOUNT_HOLDER = os.getenv('ACCOUNT_HOLDER', 'Rizi Platform')
 
     # Google Maps
-    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', 'AIzaSyDKXY_py-Ku0hm_EKZAYV5A86PTpzdNSSY')
+    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
 
     # Media Upload
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app', 'static', 'uploads')

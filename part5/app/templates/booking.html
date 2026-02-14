@@ -18,6 +18,11 @@
         <div class="nav__actions">
             <button class="btn btn--icon" onclick="toggleLanguage()"><span id="langLabel">EN</span></button>
             <button class="btn btn--icon" onclick="toggleTheme()"><i data-lucide="sun"></i></button>
+            <a href="/login" id="loginBtn" class="btn btn--primary btn--sm" data-t="login">تسجيل الدخول</a>
+            <div id="userMenu" class="nav__user" style="display:none" onclick="toggleUserDropdown()">
+                <img id="userAvatar" src="" alt="" class="nav__avatar">
+                <span id="userName"></span>
+            </div>
         </div>
     </div>
 </nav>

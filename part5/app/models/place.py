@@ -172,6 +172,8 @@ class Place(BaseModel):
         return {
             'id': self.id,
             'title': self.title_ar if lang == 'ar' else self.title_en,
+            'title_ar': self.title_ar,
+            'title_en': self.title_en,
             'price_per_night': self.price_per_night,
             'monthly_price': self.monthly_price,
             'currency': self.currency,
@@ -183,4 +185,6 @@ class Place(BaseModel):
             'is_featured': self.is_featured,
             'max_guests': self.max_guests,
             'bedrooms': self.bedrooms,
+            'latitude': round(self.latitude, 1) if self.latitude else None,
+            'longitude': round(self.longitude, 1) if self.longitude else None,
         }

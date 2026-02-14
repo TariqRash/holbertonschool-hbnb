@@ -433,6 +433,11 @@ input, select, textarea {
     margin: 4px 0;
 }
 
+.dropdown.show {
+    display: block !important;
+    animation: fadeIn 0.2s ease;
+}
+
 .user-menu {
     position: relative;
 }
@@ -1256,6 +1261,7 @@ input, select, textarea {
     border-radius: var(--radius-full);
     border: 2px solid var(--border);
     transition: var(--transition-fast);
+    position: relative;
 }
 
 .nav__user:hover {
