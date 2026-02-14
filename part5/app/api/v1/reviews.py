@@ -30,8 +30,16 @@ def place_reviews(place_id):
 @api_v1.route('/places/<place_id>/reviews', methods=['POST'])
 @jwt_required()
 def create_review(place_id):
-    """Create a review — must have a completed booking"""
+    """Create a review — must have a completed booking, cannot be the owner"""
     user_id = get_jwt_identity()
+
+    # Owner cannot review their own property
+    place = Place.query.get_or_404(place_id)
+    if place.owner_id == user_id:
+        return jsonify({
+            'error': 'Cannot review your own property',
+            'error_ar': 'لا يمكنك تقييم عقارك الخاص'
+        }), 403
 
     # Check if user has a completed booking
     booking = Booking.query.filter_by(
@@ -81,3 +89,32 @@ def create_review(place_id):
         'message_ar': 'تم إضافة التقييم',
         'review': review.to_dict()
     }), 201
+
+
+@api_v1.route('/places/<place_id>/user-status', methods=['GET'])
+@jwt_required()
+def place_user_status(place_id):
+    """Check if the current user has booked / reviewed this place"""
+    user_id = get_jwt_identity()
+    place = Place.query.get_or_404(place_id)
+
+    is_owner = (place.owner_id == user_id)
+
+    # Has a qualifying booking (completed, checked_in, or confirmed)?
+    booking = Booking.query.filter_by(
+        place_id=place_id, guest_id=user_id,
+    ).filter(Booking.status.in_(['completed', 'checked_in', 'confirmed'])).first()
+
+    has_booked = booking is not None
+
+    # Already left a review?
+    has_reviewed = Review.query.filter_by(
+        place_id=place_id, user_id=user_id
+    ).first() is not None
+
+    return jsonify({
+        'is_owner': is_owner,
+        'has_booked': has_booked,
+        'has_reviewed': has_reviewed,
+        'can_review': has_booked and not has_reviewed and not is_owner,
+    }), 200

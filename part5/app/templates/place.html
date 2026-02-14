@@ -101,8 +101,15 @@
                     <!-- Reviews -->
                     <section class="place-section">
                         <h2 data-t="reviews">التقييمات</h2>
+                        <!-- "Booked here before" badge (shown if user has past booking) -->
+                        <div id="bookedBadge" style="display:none;margin-bottom:1rem;">
+                            <span style="display:inline-flex;align-items:center;gap:6px;background:#dcfce7;color:#166534;padding:6px 14px;border-radius:20px;font-size:0.85rem;font-weight:600;">
+                                <i data-lucide="badge-check" style="width:16px;height:16px;"></i> حجز هنا مسبقاً
+                            </span>
+                        </div>
                         <div id="placeReviews" class="reviews-list"></div>
-                        <button id="writeReviewBtn" class="btn btn--outline" style="display:none" onclick="showReviewForm()">
+                        <!-- Write Review button — only for guests who booked and haven't reviewed yet -->
+                        <button id="writeReviewBtn" class="btn btn--outline" style="display:none;margin-top:1rem;" onclick="showReviewForm()">
                             <i data-lucide="edit-3"></i> <span data-t="write_review">اكتب تقييم</span>
                         </button>
                     </section>
@@ -167,19 +174,64 @@
 <!-- ─── REVIEW MODAL ─── -->
 <div id="reviewModal" class="modal" style="display:none">
     <div class="modal__backdrop" onclick="closeReviewModal()"></div>
-    <div class="modal__content">
-        <h2>اكتب تقييمك</h2>
+    <div class="modal__content" style="max-width:500px;">
+        <h2 style="margin-bottom:1.5rem;">اكتب تقييمك</h2>
+
+        <!-- Overall Star Rating -->
         <div class="form-group">
-            <label>التقييم العام</label>
-            <div class="star-rating" id="starRating"></div>
+            <label>التقييم العام *</label>
+            <div class="star-rating-input" id="starRating">
+                <span class="star" data-val="1" onclick="setRating(1)">★</span>
+                <span class="star" data-val="2" onclick="setRating(2)">★</span>
+                <span class="star" data-val="3" onclick="setRating(3)">★</span>
+                <span class="star" data-val="4" onclick="setRating(4)">★</span>
+                <span class="star" data-val="5" onclick="setRating(5)">★</span>
+            </div>
         </div>
+
+        <!-- Rating Breakdown -->
+        <div class="review-breakdown" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;">
+            <div class="form-group">
+                <label style="font-size:0.85rem;">النظافة Cleanliness</label>
+                <select id="revCleanliness" class="form-input form-input--sm"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+            </div>
+            <div class="form-group">
+                <label style="font-size:0.85rem;">الدقة Accuracy</label>
+                <select id="revAccuracy" class="form-input form-input--sm"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+            </div>
+            <div class="form-group">
+                <label style="font-size:0.85rem;">الموقع Location</label>
+                <select id="revLocation" class="form-input form-input--sm"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+            </div>
+            <div class="form-group">
+                <label style="font-size:0.85rem;">القيمة Value</label>
+                <select id="revValue" class="form-input form-input--sm"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+            </div>
+            <div class="form-group">
+                <label style="font-size:0.85rem;">التواصل Communication</label>
+                <select id="revComm" class="form-input form-input--sm"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+            </div>
+            <div class="form-group">
+                <label style="font-size:0.85rem;">تسجيل الوصول Check-in</label>
+                <select id="revCheckin" class="form-input form-input--sm"><option value="">—</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+            </div>
+        </div>
+
+        <!-- Comment -->
         <div class="form-group">
             <label>التعليق</label>
             <textarea id="reviewComment" class="form-input" rows="4" placeholder="شاركنا تجربتك..."></textarea>
         </div>
-        <button class="btn btn--primary btn--block" onclick="submitReview()">إرسال التقييم</button>
+        <button class="btn btn--primary btn--block" id="submitReviewBtn" onclick="submitReview()">إرسال التقييم</button>
     </div>
 </div>
+
+<style>
+.star-rating-input { display:flex; gap:4px; direction:ltr; font-size:2rem; }
+.star-rating-input .star { cursor:pointer; color:#d1d5db; transition:color 0.15s; user-select:none; }
+.star-rating-input .star.active { color:#f59e0b; }
+.form-input--sm { padding:6px 10px; font-size:0.85rem; }
+</style>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/static/js/config.js"></script>
@@ -212,10 +264,10 @@
 
         // Title & header
         document.getElementById('placeTitle').textContent = isAr ? (p.title_ar || p.title_en) : (p.title_en || p.title_ar);
-        document.getElementById('placeCity').textContent = isAr ? (p.city_name_ar || p.city_name_en || '') : (p.city_name_en || '');
+        document.getElementById('placeCity').textContent = isAr ? (p.city?.name_ar || p.city?.name_en || '') : (p.city?.name_en || '');
         document.getElementById('placeRating').textContent = `★ ${p.average_rating?.toFixed(1) || '—'}`;
-        document.getElementById('placeReviewCount').textContent = `(${p.reviews_count || 0} ${t('reviews')})`;
-        document.getElementById('placeType').textContent = isAr ? (p.property_type_ar || p.property_type_en || '') : (p.property_type_en || '');
+        document.getElementById('placeReviewCount').textContent = `(${p.review_count || 0} ${t('reviews')})`;
+        document.getElementById('placeType').textContent = isAr ? (p.property_type?.name_ar || p.property_type?.name_en || '') : (p.property_type?.name_en || '');
 
         // Price
         const price = formatPrice(p.price_per_night);
@@ -358,21 +410,57 @@
     async function loadReviews() {
         const data = await api.get(`/places/${placeId}/reviews`);
         const list = document.getElementById('placeReviews');
-        if (!data || !data.length) {
+        const reviews = data?.reviews || data || [];
+
+        if (!reviews.length) {
             list.innerHTML = '<p class="text-muted">لا توجد تقييمات بعد</p>';
-            return;
+        } else {
+            const lang = getLang();
+            list.innerHTML = reviews.map(r => {
+                const authorName = r.author?.first_name || 'ضيف';
+                const authorAvatar = r.author?.avatar_url
+                    ? `<img src="${r.author.avatar_url}" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
+                    : `<div style="width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.85rem;">${authorName[0]}</div>`;
+                const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+                const date = r.created_at ? new Date(r.created_at).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US') : '';
+                return `
+                    <div class="review-item" style="display:flex;gap:12px;padding:16px 0;border-bottom:1px solid var(--border);">
+                        <div style="flex-shrink:0;">${authorAvatar}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">
+                                <strong>${authorName}</strong>
+                                <span style="color:#f59e0b;font-size:0.9rem;letter-spacing:1px;">${stars}</span>
+                                <time style="color:var(--text-muted);font-size:0.8rem;margin-inline-start:auto;">${date}</time>
+                            </div>
+                            ${r.comment ? `<p style="margin:0;line-height:1.6;">${r.comment}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
-        const lang = getLang();
-        list.innerHTML = data.map(r => `
-            <div class="review-item">
-                <div class="review-item__header">
-                    <strong>${r.user_name || 'Guest'}</strong>
-                    <span class="review-item__rating">★ ${r.rating}</span>
-                    <time>${new Date(r.created_at).toLocaleDateString(lang === 'ar' ? 'ar-SA' : 'en-US')}</time>
-                </div>
-                <p>${r.comment || ''}</p>
-            </div>
-        `).join('');
+
+        // Check user status (can they review? have they booked?)
+        if (Auth.isLoggedIn()) {
+            checkUserStatus();
+        }
+    }
+
+    async function checkUserStatus() {
+        try {
+            const status = await api.get(`/places/${placeId}/user-status`);
+
+            // Show "booked here before" badge
+            if (status.has_booked) {
+                document.getElementById('bookedBadge').style.display = 'block';
+            }
+
+            // Show "write review" button
+            if (status.can_review) {
+                document.getElementById('writeReviewBtn').style.display = 'inline-flex';
+            }
+        } catch (e) {
+            console.warn('User status check failed', e);
+        }
     }
 
     // Guests counter
@@ -475,19 +563,74 @@
     }
 
     // Review modal
+    let selectedRating = 0;
+
+    function setRating(val) {
+        selectedRating = val;
+        document.querySelectorAll('#starRating .star').forEach(s => {
+            s.classList.toggle('active', parseInt(s.dataset.val) <= val);
+        });
+    }
+
+    // Hover preview for stars
+    document.querySelectorAll('#starRating .star').forEach(star => {
+        star.addEventListener('mouseenter', () => {
+            const v = parseInt(star.dataset.val);
+            document.querySelectorAll('#starRating .star').forEach(s => {
+                s.style.color = parseInt(s.dataset.val) <= v ? '#fbbf24' : '#d1d5db';
+            });
+        });
+    });
+    document.getElementById('starRating')?.addEventListener('mouseleave', () => {
+        document.querySelectorAll('#starRating .star').forEach(s => {
+            s.style.color = '';  // revert to CSS (.active class handles it)
+        });
+    });
+
     function showReviewForm() {
+        selectedRating = 0;
+        document.querySelectorAll('#starRating .star').forEach(s => s.classList.remove('active'));
+        document.getElementById('reviewComment').value = '';
+        document.querySelectorAll('.review-breakdown select').forEach(s => s.value = '');
         document.getElementById('reviewModal').style.display = 'flex';
     }
+
     function closeReviewModal() {
         document.getElementById('reviewModal').style.display = 'none';
     }
+
     async function submitReview() {
-        const comment = document.getElementById('reviewComment').value;
-        const res = await api.post(`/places/${placeId}/reviews`, { rating: 5, comment });
-        if (res.error) return showToast(res.error, 'error');
-        showToast('شكراً لتقييمك!', 'success');
-        closeReviewModal();
-        loadReviews();
+        if (!selectedRating) return showToast('اختر التقييم العام', 'error');
+        const comment = document.getElementById('reviewComment').value.trim();
+
+        const btn = document.getElementById('submitReviewBtn');
+        btn.disabled = true;
+        btn.textContent = 'جاري الإرسال...';
+
+        try {
+            const payload = {
+                rating: selectedRating,
+                comment: comment || null,
+                cleanliness: parseInt(document.getElementById('revCleanliness').value) || null,
+                accuracy: parseInt(document.getElementById('revAccuracy').value) || null,
+                location_rating: parseInt(document.getElementById('revLocation').value) || null,
+                value: parseInt(document.getElementById('revValue').value) || null,
+                communication: parseInt(document.getElementById('revComm').value) || null,
+                check_in_rating: parseInt(document.getElementById('revCheckin').value) || null,
+            };
+            const res = await api.post(`/places/${placeId}/reviews`, payload);
+            if (res.error) throw res;
+
+            showToast(res.message_ar || 'شكراً لتقييمك!', 'success');
+            closeReviewModal();
+            document.getElementById('writeReviewBtn').style.display = 'none';
+            loadReviews();
+        } catch (e) {
+            showToast(e.error_ar || e.error || 'فشل إرسال التقييم', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'إرسال التقييم';
+        }
     }
 
     lucide.createIcons();

@@ -121,6 +121,7 @@ class Place(BaseModel):
         """Convert to dict — private data only shown if user has booked"""
         data = {
             'id': self.id,
+            'owner_id': self.owner_id,
             'title': self.title_ar if lang == 'ar' else self.title_en,
             'title_en': self.title_en,
             'title_ar': self.title_ar,
