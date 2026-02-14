@@ -336,9 +336,108 @@ async function editPlace(id) {
         document.getElementById('pInstantBook').checked = !!(p.instant_book || p.is_instant_book);
 
         openModal('placeModal');
+        // Initialize the map picker after the modal is visible
+        setTimeout(() => initPlaceMapPicker(p.latitude, p.longitude), 200);
     } catch (e) {
         showToast('فشل تحميل بيانات العقار', 'error');
     }
+}
+
+/* ─── Google Maps picker for place location ─── */
+let _placeMap = null;
+let _placeMarker = null;
+
+function initPlaceMapPicker(lat, lng) {
+    if (typeof google === 'undefined' || !google.maps) {
+        console.warn('Google Maps not loaded yet');
+        return;
+    }
+
+    const mapEl = document.getElementById('placeMapPicker');
+    if (!mapEl) return;
+
+    // Default center: Riyadh
+    const center = { lat: parseFloat(lat) || 24.7136, lng: parseFloat(lng) || 46.6753 };
+    const hasCoords = !!(lat && lng);
+
+    _placeMap = new google.maps.Map(mapEl, {
+        center,
+        zoom: hasCoords ? 15 : 6,
+        mapTypeControl: true,
+        streetViewControl: false,
+        fullscreenControl: true,
+    });
+
+    if (hasCoords) {
+        _placeMarker = new google.maps.Marker({
+            position: center,
+            map: _placeMap,
+            draggable: true,
+            title: 'موقع العقار',
+        });
+
+        _placeMarker.addListener('dragend', (e) => {
+            updateLatLngInputs(e.latLng.lat(), e.latLng.lng());
+        });
+    }
+
+    // Click on map → place / move marker
+    _placeMap.addListener('click', (e) => {
+        const clickLat = e.latLng.lat();
+        const clickLng = e.latLng.lng();
+
+        if (_placeMarker) {
+            _placeMarker.setPosition(e.latLng);
+        } else {
+            _placeMarker = new google.maps.Marker({
+                position: e.latLng,
+                map: _placeMap,
+                draggable: true,
+                title: 'موقع العقار',
+            });
+            _placeMarker.addListener('dragend', (ev) => {
+                updateLatLngInputs(ev.latLng.lat(), ev.latLng.lng());
+            });
+        }
+
+        updateLatLngInputs(clickLat, clickLng);
+    });
+
+    // Also add a search box for the address field
+    const addressInput = document.getElementById('pAddress');
+    if (addressInput && google.maps.places) {
+        const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+            componentRestrictions: { country: 'sa' },
+        });
+        autocomplete.bindTo('bounds', _placeMap);
+        autocomplete.addListener('place_changed', () => {
+            const place = autocomplete.getPlace();
+            if (place.geometry && place.geometry.location) {
+                const loc = place.geometry.location;
+                _placeMap.setCenter(loc);
+                _placeMap.setZoom(16);
+                if (_placeMarker) {
+                    _placeMarker.setPosition(loc);
+                } else {
+                    _placeMarker = new google.maps.Marker({
+                        position: loc,
+                        map: _placeMap,
+                        draggable: true,
+                        title: 'موقع العقار',
+                    });
+                    _placeMarker.addListener('dragend', (ev) => {
+                        updateLatLngInputs(ev.latLng.lat(), ev.latLng.lng());
+                    });
+                }
+                updateLatLngInputs(loc.lat(), loc.lng());
+            }
+        });
+    }
+}
+
+function updateLatLngInputs(lat, lng) {
+    document.getElementById('pLatitude').value = parseFloat(lat).toFixed(6);
+    document.getElementById('pLongitude').value = parseFloat(lng).toFixed(6);
 }
 
 async function savePlace() {

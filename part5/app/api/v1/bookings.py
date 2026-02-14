@@ -20,10 +20,10 @@ def _check_cleaning_window(place_id, check_in_date, check_out_date):
     This means same-day turnover is allowed (check-out 12 PM → clean → check-in 4 PM),
     but no overlapping dates.
     """
-    # Standard overlap check (confirmed/checked_in bookings)
+    # Standard overlap check (pending/confirmed/checked_in bookings)
     conflict = Booking.query.filter(
         Booking.place_id == place_id,
-        Booking.status.in_(['confirmed', 'checked_in']),
+        Booking.status.in_(['pending', 'confirmed', 'checked_in']),
         Booking.check_in < check_out_date,
         Booking.check_out > check_in_date,
     ).first()

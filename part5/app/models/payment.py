@@ -18,7 +18,7 @@ class Payment(BaseModel):
     currency = db.Column(db.String(3), default='SAR')
 
     # Status: pending, awaiting_confirmation, completed, failed, refunded
-    status = db.Column(db.String(20), default='pending', index=True)
+    status = db.Column(db.String(30), default='pending', index=True)
 
     # Payment method: bank_transfer, mada_transfer, cash_on_arrival
     payment_method = db.Column(db.String(50), nullable=False, default='bank_transfer')
