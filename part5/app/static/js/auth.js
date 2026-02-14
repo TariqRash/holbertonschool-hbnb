@@ -385,7 +385,7 @@ function updateFavoriteIcons() {
         const href = card.getAttribute('href');
         if (!href) return;
         const id = href.split('/').pop();
-        const btn = card.querySelector('.place-card-fav i');
+        const btn = card.querySelector('.place-card-fav svg') || card.querySelector('.place-card-fav i');
         if (!btn) return;
         
         if (favoriteIds.has(id)) {
@@ -401,13 +401,14 @@ function updateFavoriteIcons() {
 window.toggleFavorite = async function(id, btn) {
     if (!Auth.isLoggedIn()) {
         showToast('سجل الدخول لإضافة للمفضلة', 'info');
-        // window.location.href = '/login'; // Optional: Redirect or just toast
         return;
     }
     
     // Optimistic UI update
     const isFav = favoriteIds.has(id);
-    const icon = btn.querySelector('i');
+    // Lucide replaces <i> with <svg>, so look for svg first, then i
+    const icon = btn.querySelector('svg') || btn.querySelector('i');
+    if (!icon) return;
     
     if (isFav) {
         favoriteIds.delete(id);
